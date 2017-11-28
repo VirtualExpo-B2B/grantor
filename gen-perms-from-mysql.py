@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+#coding: utf8
 
 import argparse
 import code
@@ -29,6 +30,7 @@ def do_user_table_privs(d, conn, user):
 
   # get the sources
   # FIXME: store everything in an array THEN flush to disk to avoid partial files?
+  # DO WE RELAY NEED THIS : Cause, if we add a new server, or delete one, this list must be up to date
   of = open(d + '/_sources', 'w')
   cur.execute("SELECT DISTINCT Host FROM mysql.tables_priv WHERE User = '%s'" % user)
   for host in cur.fetchall():
