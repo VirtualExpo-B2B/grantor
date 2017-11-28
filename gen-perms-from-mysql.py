@@ -21,9 +21,11 @@ def quick_write(path, contents):
   of.write(contents)
   of.close()
 
-def do_user_table_privs(d, cur, user):
+def do_user_table_privs(d, conn, user):
   '''iterates over all permissions listed for a specific user in mysql.tables_priv'''
   safe_mkdir(d)
+
+  cur = conn.cursor()
 
   # get the sources
   # FIXME: store everything in an array THEN flush to disk to avoid partial files?
@@ -60,7 +62,7 @@ def do_users(d, conn):
     #for p in cur_u.fetchall():
     #  quick_write(du + '/_password', p[0])
       
-    do_user_table_privs(du, cur, user[0])
+    do_user_table_privs(du, conn, user[0])
 
   
 def safe_mkdir(d):
