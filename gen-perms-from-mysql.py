@@ -68,7 +68,7 @@ def main():
   parser.add_argument('-s', '--server', nargs=1, help='address of the MySQL server', required=True)
   parser.add_argument('-u', '--user', nargs=1, default=['root'], help='username to authenticate')
   parser.add_argument('-p', '--passwd', nargs=1, help='password of the user', required=True)
-  parser.add_argument('-t', '--dbtype', nargs=1, default=['prod'], help='type of database node (prod/dwh/dmt/tech/...)')
+  parser.add_argument('-t', '--dbtype', nargs=1, required=True, help='type of database node (site/dwh/dmt/tech/...)')
   parser.add_argument('-d', '--destdir', nargs=1, default=['perms'], help='path to the output directory')
   parser.add_argument('-v', '--verbose', default=False, action='store_true', help='tell me whattya doin')
 
