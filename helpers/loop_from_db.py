@@ -1,7 +1,8 @@
 # vim: set sw=4
 
+import os
 from mappings import map_meta_from_host
-from common import makepath, logv
+from common import makepath, logv, quick_read
 
 def drop_user(conn, user, host):
     cur = conn.cursor()
