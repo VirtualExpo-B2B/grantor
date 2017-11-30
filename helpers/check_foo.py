@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 #coding: utf8
 
+
 from common import *
+from mappings import *
 
 # vérifie si les global_pemrs d'un ursr (passée en param) son identique à celles trouvée en base
 def check_global_perms_for_user(conn, user, sql_host, global_perms_content):
@@ -26,41 +28,34 @@ def check_global_perms_for_user(conn, user, sql_host, global_perms_content):
 
 
 
+## check if host in local is the same as the hos in db for a user
+
 def check_foo_hosts(envid, conn, user, hosts):
-
-    identique=True
-
     cur=conn.cursor()
 
-    print(hosts)
+    filer_hosts_list=['',]
+    filer_hosts_list.remove('')
+    db_hosts=['',]
+    db_hosts.remove('')
+
+    for h in hosts:
+        arr=get_hosts_from_meta("","",h)# get array of environment ip
+        for h2 in arr:
+            filer_hosts_list.append(h2) # ajoute les ip trouvées dans le repo local
+
+    cur.execute("SELECT Host FROM mysql.user WHERE User='%s'" % (user))
+    for h in cur.fetchall():
+        db_hosts.append(h[0])
 
 
 
-    filer_hosts_list=('',)
+    if not is_this_array_is_in_the_other(db_hosts, filer_hosts_list):
+        return False
 
-    for host in hosts:
+    if not is_this_array_is_in_the_other(filer_hosts_list,db_hosts):
+        return False
 
-
-        print(host)
-
-
-
-        if len(hosts)>0:
-            cur.execute("SELECT Host FROM mysql.user WHERE User='%s'" % (user))
-            db_hosts=cur.fetchall()[0][0]
-            print(db_hosts)
-            filer_hosts_list.__add__(db_hosts)
-
-            '''
-            identique=val==db_val
-            if identique==False:
-                print("PAS PAREIL --> %s - %s " % (val,db_val))
-                return identique
-            '''
-
-    print(filer_hosts_list)
-
-    return identique
+    return True
 
 
 
@@ -81,7 +76,7 @@ def test_globalperms():
     s=quick_read('/home/hiacine.ghaoui/workspace/perms/site/app_scenario_bo/global_perms')
     p=s.strip().split("\n")
 
-    r=check_foo_global_perms(conn, 'app_scenario_bo', p)
+    r=check_global_perms_for_user(conn, 'app_scenario_bo', p)
 
     conn.close()
 
@@ -100,9 +95,8 @@ def test_hosts():
 
     conn.close()
 
-   # print(r)
 
-
+    print("test_hosts %s" % (r))
 
 
 

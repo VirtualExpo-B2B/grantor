@@ -8,16 +8,22 @@ import time
 
 
 def quick_write(path, contents):
-    of = open(path, 'w') or return False
-    of.write(contents)
-    of.close()
+    try:
+        of = open(path, 'w')
+        of.write(contents)
+        of.close()
+    except:
+        return False
 
 
 def quick_read(path):
-    file = open(path, 'r') or return False
-    content=file.read()
-    file.close()
-    return content
+    try:
+        file = open(path, 'r')
+        content=file.read()
+        file.close()
+        return content
+    except:
+        return False
 
 def die(str):
     print(str)
@@ -45,8 +51,18 @@ def makepath(*arg):
           result += ( '/' + i )
   return result
 
-if __name__ == '__main__':
-    print(quick_read('/home/hiacine.ghaoui/workspace/perms/site/mysql_version'))
+
+
+
+# permet de vérifier si un tableaux est identique à l'autre
+def is_this_array_is_in_the_other(array_one, array_two):
+
+    for val in array_one:
+        if val not in array_two:
+            return False
+
+    return True
+
 
 
 

@@ -1,15 +1,8 @@
 # vim: set sw=4
 
-# convert meta-hosts to an array of MySQL hosts
-# folx on ndev1 -> [172.16.130.%]
-def get_hosts_from_meta(envtype, envid, meta_host):
-  # FIXME
-  return ["%"]
 
 
-# convert MySQL host to meta
-def get_meta_from_host(host):
-  map = {
+map = {
         "%": "any",
         "10.80.30.%": "folx",
         "10.80.31.%": "dblx",
@@ -45,7 +38,30 @@ def get_meta_from_host(host):
         "172.16.145.%": "rplx",
       }
 
+
+
+# convert meta-hosts to an array of MySQL hosts
+# folx on ndev1 -> [172.16.130.%]
+def get_hosts_from_meta(envtype, envid, meta_host):
+  # FIXME : WHAT IS envtype and envid
+  arr=['',]
+  arr.remove('')
+  for val in map:
+     if meta_host==map[val]:
+         arr.append(val)
+
+  return arr
+
+
+# convert MySQL host to meta
+def get_meta_from_host(host):
+
   if host in map:
     return map[host]
   else:
     return False
+
+
+if __name__ == '__main__':
+      r=get_hosts_from_meta("","ndev1","localhost")
+      print(r)
