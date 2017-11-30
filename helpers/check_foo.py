@@ -68,8 +68,27 @@ def check_user_password(envid, conn, user, password_in_local):
     return r[0][0].strip()==password_in_local.strip()
 
 
+# check si le contenu des droits databases sur le filer est identique au droits database en db
+def check_user_for_database(envid, conn, user, jesaispastropquoi):
+
+    sql_get_user_host="SELECT DISTINCT Host FROM mysql.tables_priv WHERE User = '%s' limit 1" % (user)
+    cur=conn.cursor()
+    cur.execute(sql_get_user_host)
+
+    r=cur.fetchall()
+
+    host=r[0][0]
+
+    sql_get_user_priv_for_host="SELECT Db,Table_name, Table_priv FROM mysql.tables_priv WHERE User = '%s' AND Host = '%s'" % (user, host)
+
+    cur.execute(sql_get_user_priv_for_host)
+
+    for priv in cur.fetchall():
+        print(priv)
 
 
+
+    return 1
 
 
 
@@ -113,8 +132,16 @@ def test_password():
     print(r)
 
 
+def test_databasepriv():
+    print("test database")
+    from conn_hia import getconnection
+    conn = getconnection()
+
+    check_user_for_database("", conn, 'app_scenario_bo','')
+
+
 if __name__ == '__main__':
-    test_password()
+    test_databasepriv()
 
 
 
