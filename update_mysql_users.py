@@ -3,10 +3,9 @@
 import argparse
 import socket
 import os
-import helpers
 
-logv = helpers.common.logv
-die = helpers.common.die
+from helpers.common import *
+from helpers import *
 
 # 0. check version?
 # 1. loop from git  ( conn, permsdir, list[functions], envtype, envid )
@@ -54,14 +53,14 @@ def main():
   parser.add_argument('-p', '--passwd', nargs=1, help='password of the user', required=True)
   parser.add_argument('-P', '--permsdir', nargs=1, required=True, default=['../perms'], help='path to the perms directory')
   parser.add_argument('-v', '--verbose', default=False, action='store_true', help='tell me whattya doin')
-  parser.add_argument('-f', nargs='*', required=True, help='function to restore [site/dwh/tech/dmt...]', type=str, dest='functions_list', action='store')
+  parser.add_argument('-f', '--function', nargs='*', required=True, help='function to restore [site/dwh/tech/dmt...]', type=str, dest='functions_list', action='store')
 
   args = parser.parse_args()
 
   global g_verbose
   g_verbose = args.verbose
 
-  for f in args.f:
+  for f in args.functions_list:
     if not os.path.isdir(args.permsdir[0] + '/' + f):
       die("function %s doesn't exist in %s\n" % (args.permsdir[0], f))
 
