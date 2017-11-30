@@ -20,16 +20,16 @@ def check_global_users(conn, permsdir, functions, envtype, envid):
 
     for line in res.fetchall():
         user = line[0]
-        host = line[1]
+        sql_host = line[1]
 
         # reverse lookup
-        m = map_meta_from_host(host)
+        m = map_meta_from_host(sql_host)
 
         # m = folx
 
         foundit = False
         for f in functions:
-            r = quick_read(makepath(permsdir, f,  user, 'hosts', envtype)
+            r = quick_read(makepath(permsdir, f,  user, 'hosts', envtype) or break
             meta = r.split('\n')
             if m in meta:
                 foundit = True
@@ -42,7 +42,7 @@ def check_global_users(conn, permsdir, functions, envtype, envid):
 def check_db_privs(conn, permsdir, functions, envtype, envid):
 
     cur = conn.cursor()
-    res = cur.execute("SELECT * FROM mysql.dbs")
+    res = cur.execute("SELECT * FROM mysql.db")
 
     for row in res.fetchall():
         host = row[0]
