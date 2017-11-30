@@ -13,12 +13,14 @@ def loop_from_git(conn, permsdir, functions, envtype, envid):
 
   for function in functions:
     logv("checking perms for function %s" % function)
-    functiondir = '../' + permsdir + '/' + function
+    functiondir = permsdir + '/' + function
     logv("functiondir: %s" % functiondir)
   
     dirs = os.listdir(functiondir)
 
     for user in dirs:
+      if user == 'mysql_version':
+        continue
       logv("user: %s" % user)
 
       #from helpers.common import quick_read
