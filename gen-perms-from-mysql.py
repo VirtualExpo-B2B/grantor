@@ -41,18 +41,13 @@ def do_user_table_privs(d, conn, user):
 
   cur = conn.cursor()
 
-  # get the sources
-  # FIXME: store everything in an array THEN flush to disk to avoid partial files?
-  # DO WE RELAY NEED THIS : Cause, if we add a new server, or delete one, this list must be up to date
-  of = open(d + '/_sources', 'w')
-  cur.execute("SELECT DISTINCT Host FROM mysql.tables_priv WHERE User = '%s'" % user)
-  for host in cur.fetchall():
-    of.write("%s\n" % host)
-  of.close()
-
   # since permissions are identical whatever the source Host is, we get the first one
   cur.execute("SELECT DISTINCT Host FROM mysql.tables_priv WHERE User = '%s' LIMIT 1" % user)
-  h = cur.fetchall()[0][0]
+  res = cur.fetchall()
+  if len(res) == 0:
+    # user has no per-table permissions
+    return
+  h = res[0][0]
 
   # iterate over user's permissions
   cur.execute("SELECT * FROM mysql.tables_priv WHERE User = '%s' AND Host = '%s'" % (user, h))
@@ -78,7 +73,7 @@ def do_user_db_privs(d, conn, user):
       if len(res) != 1:
         die("fatal: res.len=%i != 1 in do_user_db_privs for %s (priv: %s)" % ( len(res), user, priv ))
       f.write("%s: %s\n" % ( priv, res[0][0] ))
-  f.close()
+    f.close()
 
 def do_user(d, conn, user):
   '''stores global user's settings'''
@@ -89,7 +84,7 @@ def do_user(d, conn, user):
     cur.execute("SELECT DISTINCT %s FROM mysql.user WHERE User='%s'" % ( priv, user ) )
     res = cur.fetchall()
     # FIXME: dirty hack for the specific Super_priv from 10.80.32.% granted to app_batch_solr
-    if len(res) != 1 and user != 'app_batch_solr':
+    if len(res) != 1 and ( user != 'app_batch_solr' and user != "replication" and user != "root" ):
       die("fatal: res != 1 in do_user for %s (priv: %s)" % ( user, priv ))
     f.write(priv + ": " + res[0][0] + "\n")
 
@@ -124,6 +119,10 @@ def lookup_reverse_map(h):
         "10.80.34.%": "solx",
         "10.80.35.%": "ssolx",
         "10.80.36.%": "rplx",
+        "10.80.41.%": "admlx",
+        "10.80.50.%": "applx", # bilx
+        "10.80.0.0/255.255.0.0": "veso",
+        "10.80.%.%": "veso",
         "127.0.0.1":  "localhost",
         "172.16.10.%": "net-priv",
         "172.16.11.%": "net-adm",
@@ -133,7 +132,19 @@ def lookup_reverse_map(h):
         "172.16.40.%":  "velo40",
         "172.16.50.%":  "velo50",
         "::1":          "localhost",
-        "localhost":    "localhost"
+        "localhost":    "localhost",
+        "172.16.130.%": "folx",
+        "172.16.131.%": "dblx",
+        "172.16.132.%": "wklx",
+        "172.16.133.%": "bolx",
+        "172.16.134.%": "ssolx",
+        "172.16.135.%": "rplx",
+        "172.16.140.%": "folx",
+        "172.16.141.%": "dblx",
+        "172.16.142.%": "wklx",
+        "172.16.143.%": "bolx",
+        "172.16.144.%": "ssolx",
+        "172.16.145.%": "rplx",
       }
 
   if h in l:
@@ -149,30 +160,35 @@ def loop_users(d, conn):
   cur = conn.cursor()
   cur_u = conn.cursor()
 
-  cur.execute('SELECT Host FROM mysql.user WHERE User="%s"' % ( user ) )
-  res = cur.fetchall()
-  f = open('hosts/' + args.envtype[0], 'w')
-  for host in res:
-    h = host[0]
-    meta_host = lookup_reverse_map(h)
-    if meta_host != False:
-      f.write(meta_host + "\n")
-  f.close()
-
   # we assume users from EVERY sources have the same permissions
   cur.execute('SELECT DISTINCT User FROM mysql.user ORDER BY User')
   for user in cur.fetchall():
+    user=user[0]
+    if user == '':
+      logv("warning: invalid empty username, skipping.")
+      continue
     logv("working on user %s" % user)
-    du = d + '/' + user[0]
+    du = d + '/' + user
     safe_mkdir(du)
 
-    #cur_u.execute("SELECT Password FROM mysql.user WHERE User='%s'" % user)
-    #for p in cur_u.fetchall():
-    #  quick_write(du + '/_password', p[0])
     if args.passwords:
-      do_user_password(du, conn, user[0])
+      do_user_password(du, conn, user)
     else:
-      do_user(du, conn, user[0])
+      cur.execute('SELECT Host FROM mysql.user WHERE User="%s"' % ( user ) )
+      res = cur.fetchall()
+      safe_mkdir(du + '/hosts')
+      f = open(du + '/hosts/' + args.envtype[0], 'w')
+      for host in res:
+        h = host[0]
+        meta_host = lookup_reverse_map(h)
+        if meta_host != False:
+          f.write(meta_host + "\n")
+        else:
+          print("warning: unknown mapping %s [user=%s]" % ( h, user ))
+          if user != "root":
+            f.write(h + "\n")
+      f.close()
+      do_user(du, conn, user)
 
   
 def safe_mkdir(d):
