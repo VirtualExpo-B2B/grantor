@@ -51,11 +51,11 @@ def main():
   parser.add_argument('-p', '--passwd', nargs=1, help='password of the user', required=True)
   parser.add_argument('-P', '--permsdir', nargs=1, required=True, default=['../perms'], help='path to the perms directory')
   parser.add_argument('-v', '--verbose', default=False, action='store_true', help='tell me whattya doin')
-  parser.add_argument('-f', nargs='?', required=True, help='function to restore [site/dwh/tech/dmt...]', type=str)
+  parser.add_argument('-f', nargs='*', required=True, help='function to restore [site/dwh/tech/dmt...]', type=str, dest='functions_list', action='store')
 
   args = parser.parse_args()
 
-  for f in args.f:
+  for f in args.functions_list:
     if not os.path.isdir(args.permsdir + '/' + f):
       die("function %s doesn't exist in %s\n" % (args.permsdir, f))
 
@@ -75,8 +75,8 @@ def main():
   fmap = { "1": get_envid_dev, "2": get_envid_preprod, "3": get_envid_prod, "6": get_envid_staging }
   envid = fmap[envtype_n](hostname) or die("unable to determine envid")
 
-  loop_from_git(conn, args.permsdir, args.f, envtype, envid)
-  loop_from_db(conn, args.permsdir, args.f, envtype, envid)
+  loop_from_git(conn, args.permsdir, args.functions_list, envtype, envid)
+  loop_from_db(conn, args.permsdir, args.functions_list, envtype, envid)
 
 
 if __name__ == "__main__":
