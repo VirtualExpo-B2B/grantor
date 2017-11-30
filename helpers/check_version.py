@@ -2,7 +2,7 @@
 
 import pymysql
 from helpers.common import  quick_read
-
+from helpers.common import get_connection
 
 
 
@@ -26,7 +26,7 @@ def check_mysql_version(db_connection, local_mysql_version_file):
 if __name__ == '__main__':
 
     #FIXME : à mettre dans un fichier commun, voir pour la recupe des user mdp
-    conn = pymysql.connect(host="velo1dblx01-1", user="dev", passwd="PleaseBeCareful")
+    conn = get_connection("velo1dblx01-1")
 
     # FIXME : voir comment faire pour le chemin
     perms_dir = "/home/hiacine.ghaoui/workspace/perms"

@@ -1,5 +1,5 @@
 #coding: utf8
-
+import pymysql
 
 def quick_write(path, contents):
   of = open(path, 'w')
@@ -12,6 +12,10 @@ def quick_read(path):
     content=file.read()
     file.close()
     return content
+
+
+def get_connection(db_hosts):
+    return pymysql.connect(host=db_hosts, user="dev", passwd="PleaseBeCareful")
 
 
 if __name__ == '__main__':
