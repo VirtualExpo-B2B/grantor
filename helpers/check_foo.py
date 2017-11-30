@@ -2,6 +2,8 @@
 #coding: utf8
 
 import helpers.common
+import helpers.mappings
+
 
 # vérifie si les global_pemrs d'un ursr (passée en param) son identique à celles trouvée en base
 def check_foo_global_perms(conn, user, global_perms):
@@ -25,7 +27,7 @@ def check_foo_global_perms(conn, user, global_perms):
 
 
 
-def check_foo_hosts(conn, user, hosts):
+def check_foo_hosts(envid, conn, user, hosts):
 
     identique=True
 
@@ -33,18 +35,31 @@ def check_foo_hosts(conn, user, hosts):
 
     print(hosts)
 
+
+
+    filer_hosts_list=('',)
+
     for host in hosts:
 
-        if len(host)>0:
+
+        print(host)
+
+
+
+        if len(hosts)>0:
             cur.execute("SELECT Host FROM mysql.user WHERE User='%s'" % (user))
-            db_hosts=cur.fetchall()[0]
+            db_hosts=cur.fetchall()[0][0]
             print(db_hosts)
+            filer_hosts_list.__add__(db_hosts)
+
             '''
             identique=val==db_val
             if identique==False:
                 print("PAS PAREIL --> %s - %s " % (val,db_val))
                 return identique
             '''
+
+    print(filer_hosts_list)
 
     return identique
 
@@ -82,8 +97,7 @@ def test_hosts():
     s=quick_read('/home/hiacine.ghaoui/workspace/perms/site/app_scenario_bo/hosts/dev')
     p=s.strip().split("\n")
 
-    print (p)
-   # r=check_foo_global_perms(conn, 'app_scenario_bo', p)
+    r=check_foo_hosts('ndev1',conn, 'app_scenario_bo', p)
 
     conn.close()
 
