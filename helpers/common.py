@@ -23,7 +23,10 @@ def die(str):
 def logv(str):
     global g_verbose
     if g_verbose:
-        print(str)
+        print('[' + time.strfime("%c") + '] ' + str + "\n")
+
+def log(str):
+    print('[' + time.strfime("%c") + '] ' + str + "\n")
 
 if __name__ == '__main__':
     print(quick_read('/home/hiacine.ghaoui/workspace/perms/site/mysql_version'))
