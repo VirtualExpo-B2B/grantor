@@ -8,13 +8,13 @@ import time
 
 
 def quick_write(path, contents):
-    of = open(path, 'w')
+    of = open(path, 'w') or return False
     of.write(contents)
     of.close()
 
 
 def quick_read(path):
-    file = open(path, 'r')
+    file = open(path, 'r') or return False
     content=file.read()
     file.close()
     return content

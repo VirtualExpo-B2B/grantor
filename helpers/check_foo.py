@@ -4,16 +4,17 @@
 from common import *
 
 # vérifie si les global_pemrs d'un ursr (passée en param) son identique à celles trouvée en base
-def check_foo_global_perms(conn, user, global_perms):
+def check_global_perms_for_user(conn, user, sql_host, global_perms_content):
 
     identique=True
 
     cur=conn.cursor()
 
-    for gperm in global_perms:
+    for gperm in global_perms_content:
 
         if len(gperm)>0:
-            cur.execute("SELECT distinct %s from mysql.user where user='%s'" % (gperm.split(':')[0], user))
+            cur.execute("SELECT %s FROM mysql.user WHERE User='%s' AND Host='%s'" % (gperm.split(':')[0], user, sql_host))
+            # FIXME: assert 1 row!
             db_val=cur.fetchall()[0][0]
             val=gperm.split(':')[1].strip()
             identique=val==db_val

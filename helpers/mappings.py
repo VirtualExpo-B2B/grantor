@@ -2,7 +2,7 @@
 
 # convert meta-hosts to an array of MySQL hosts
 # folx on ndev1 -> [172.16.130.%]
-def get_hosts_from_meta(envid, meta_host):
+def get_hosts_from_meta(envtype, envid, meta_host):
   # FIXME
   return ["%"]
 
