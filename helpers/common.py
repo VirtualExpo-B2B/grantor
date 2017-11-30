@@ -35,6 +35,16 @@ def logv(str):
 def log(str):
     print('[' + time.strftime("%c") + '] ' + str + "\n")
 
+# concatenate all its arguments, adding '/' between elements
+def makepath(*arg):
+  result = ""
+  for i in arg:
+      if result == "":
+          result += i
+      else:
+          result += ( '/' + i )
+  return result
+
 if __name__ == '__main__':
     print(quick_read('/home/hiacine.ghaoui/workspace/perms/site/mysql_version'))
 
