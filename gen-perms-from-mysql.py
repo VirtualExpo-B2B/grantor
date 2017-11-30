@@ -15,12 +15,14 @@ user_db_privs = [ "Select_priv", "Insert_priv", "Update_priv", "Delete_priv", "C
 #
 # filesystem layout:
 #
-# - dbtype [arg]
-#   `- user [select]
-#      `- db [select]
-#      |  `- table -> perms [select]
-#      `- sources [select]
-#
+# - $dbtype
+#   `- $user
+#     `- perms
+#     `- sources [select]
+#     `- passwords -> $envtype
+#     `- databases
+#       `- perms
+#       `- tables -> $table -> perms [select]
 
 def quick_write(path, contents):
   of = open(path, 'w')
@@ -97,9 +99,23 @@ def do_user(d, conn, user):
 
   # then do per-table privileges
   do_user_table_privs(d + '/databases', conn, user)
+
+def do_user_passwords(d, conn, user):
+  '''stores the password of $user'''
+
+  cur = conn.cursor()
+
+  safe_mkdir(d + '/passwords')
+  f = open(d + '/passwords/' + args.envtype)
+  cur.execute("SELECT Password FROM mysql.user WHERE User='%s'" % ( user ))
+  res = cur.fetchall()
+  f.write(res[0])
+  f.close()
     
 def loop_users(d, conn):
   '''iterates over all users found in the mysql.tables_priv table'''
+  global args
+
   logv("listing users...")
 
   cur = conn.cursor()
@@ -114,8 +130,10 @@ def loop_users(d, conn):
     #cur_u.execute("SELECT Password FROM mysql.user WHERE User='%s'" % user)
     #for p in cur_u.fetchall():
     #  quick_write(du + '/_password', p[0])
-      
-    do_user(du, conn, user[0])
+    if args.passwords:
+      do_user_password(du, conn, user[0])
+    else:
+      do_user(du, conn, user[0])
 
   
 def safe_mkdir(d):
@@ -127,8 +145,8 @@ def safe_mkdir(d):
 
 def logv(str):
   '''verbose logging using global crap'''
-  global verbose
-  if verbose:
+  global args 
+  if args.verbose:
     print(str)
 
 def main():
@@ -139,12 +157,13 @@ def main():
   parser.add_argument('-t', '--dbtype', nargs=1, required=True, help='type of database node (site/dwh/dmt/tech/...)')
   parser.add_argument('-d', '--destdir', nargs=1, default=['perms'], help='path to the output directory')
   parser.add_argument('-v', '--verbose', default=False, action='store_true', help='tell me whattya doin')
+  parser.add_argument('-P', '--passwords', default=False, action='store_true', help='extract passwords from the remote server, requires --envtype')
+  parser.add_argument('-T', '--envtype', nargs=1, help='specifies the environment type [dev/preprod/prod]')
 
   args = parser.parse_args()
 
   # put this shit back into the global scope for logv()
-  global verbose
-  verbose = args.verbose;
+  global args
 
   logv("connecting to %s" % args.server[0])
 
@@ -155,7 +174,11 @@ def main():
   for d in args.destdir[0], args.destdir[0] + '/' + args.dbtype[0]:
     safe_mkdir(d)
 
+  if args.password and not args.envtype:
+    die("-P requires -T")
+
   loop_users(args.destdir[0] + '/' + args.dbtype[0], conn)
+
 
   conn.close()
 
