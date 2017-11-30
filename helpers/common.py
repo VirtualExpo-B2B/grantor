@@ -1,6 +1,8 @@
 #coding: utf8
 import pymysql
 
+
+
 def quick_write(path, contents):
   of = open(path, 'w')
   of.write(contents)

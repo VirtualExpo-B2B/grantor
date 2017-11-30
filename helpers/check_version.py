@@ -7,12 +7,12 @@ from helpers.common import get_connection
 
 
 
-def check_mysql_version(db_connection, local_mysql_version_file):
+def check_mysql_version(conn, local_mysql_version_file):
 
 
 
     # we wrongfully assume that `d' has been created
-    cur = db_connection.cursor()
+    cur = conn.cursor()
     cur.execute('SHOW VARIABLES LIKE "version"')
     version = cur.fetchall()[0][1].split('-')[0]
 
