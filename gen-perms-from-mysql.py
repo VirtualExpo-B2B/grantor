@@ -17,8 +17,9 @@ user_db_privs = [ "Select_priv", "Insert_priv", "Update_priv", "Delete_priv", "C
 # filesystem layout:
 #
 # - $dbtype
+#   `- mysql_version
 #   `- $user
-#     `- perms
+#     `- global_perms
 #     `- sources [select]
 #     `- passwords -> $envtype
 #     `- databases
@@ -102,18 +103,43 @@ def do_user(d, conn, user):
   # then do per-table privileges
   do_user_table_privs(d + '/databases', conn, user)
 
-def do_user_passwords(d, conn, user):
+def do_user_password(d, conn, user):
   '''stores the password of $user'''
 
   cur = conn.cursor()
 
   safe_mkdir(d + '/passwords')
-  f = open(d + '/passwords/' + args.envtype)
+  f = open(d + '/passwords/' + args.envtype[0], 'w')
   cur.execute("SELECT Password FROM mysql.user WHERE User='%s'" % ( user ))
   res = cur.fetchall()
-  f.write(res[0])
+  f.write(res[0][0] + "\n")
   f.close()
-    
+   
+def lookup_reverse_map(h):
+  l = {
+        "%": "any",
+        "10.80.30.%": "folx",
+        "10.80.31.%": "dblx",
+        "10.80.32.%": "wklx",
+        "10.80.34.%": "solx",
+        "10.80.35.%": "ssolx",
+        "10.80.36.%": "rplx",
+        "127.0.0.1":  "localhost",
+        "172.16.10.%": "net-priv",
+        "172.16.11.%": "net-adm",
+        "172.16.200.%": "net-vpn",
+        "172.16.100.%": "net-vpn",
+        "172.16.30.%":  "velo30",
+        "172.16.40.%":  "velo40",
+        "172.16.50.%":  "velo50",
+        "::1":          "localhost",
+        "localhost":    "localhost"
+      }
+
+  if h in l:
+    return l[h]
+  return False
+
 def loop_users(d, conn):
   '''iterates over all users found in the mysql.tables_priv table'''
   global args
@@ -123,7 +149,18 @@ def loop_users(d, conn):
   cur = conn.cursor()
   cur_u = conn.cursor()
 
-  cur.execute('SELECT DISTINCT User FROM mysql.tables_priv ORDER BY User')
+  cur.execute('SELECT Host FROM mysql.user WHERE User="%s"' % ( user ) )
+  res = cur.fetchall()
+  f = open('hosts/' + args.envtype[0], 'w')
+  for host in res:
+    h = host[0]
+    meta_host = lookup_reverse_map(h)
+    if meta_host != False:
+      f.write(meta_host + "\n")
+  f.close()
+
+  # we assume users from EVERY sources have the same permissions
+  cur.execute('SELECT DISTINCT User FROM mysql.user ORDER BY User')
   for user in cur.fetchall():
     logv("working on user %s" % user)
     du = d + '/' + user[0]
@@ -151,7 +188,19 @@ def logv(str):
   if args.verbose:
     print(str)
 
+def store_mysql_version(d, conn):
+  # we wrongfully assume that `d' has been created
+  cur = conn.cursor()
+  cur.execute('SHOW VARIABLES LIKE "version"')
+  version = cur.fetchall()[0][1]
+  f = open(d + '/mysql_version', 'w')
+  f.write(version + "\n")
+  f.close()
+
 def main():
+  # tell me it sucks if u got the balls to do so!
+  global args
+
   parser = argparse.ArgumentParser(prog='perms-extractor', description='Generates a MySQL grants reference tree')
   parser.add_argument('-s', '--server', nargs=1, help='address of the MySQL server', required=True)
   parser.add_argument('-u', '--user', nargs=1, default=['root'], help='username to authenticate')
@@ -160,27 +209,23 @@ def main():
   parser.add_argument('-d', '--destdir', nargs=1, default=['perms'], help='path to the output directory')
   parser.add_argument('-v', '--verbose', default=False, action='store_true', help='tell me whattya doin')
   parser.add_argument('-P', '--passwords', default=False, action='store_true', help='extract passwords from the remote server, requires --envtype')
-  parser.add_argument('-T', '--envtype', nargs=1, help='specifies the environment type [dev/preprod/prod]')
+  parser.add_argument('-T', '--envtype', nargs=1, required=True, help='specifies the environment type [dev/preprod/prod]')
 
   args = parser.parse_args()
 
-  # put this shit back into the global scope for logv()
-  global args
-
   logv("connecting to %s" % args.server[0])
-
   conn = pymysql.connect( host=args.server[0], user=args.user[0], passwd=args.passwd[0] )
-
   logv("connected to %s" % args.server[0])
 
   for d in args.destdir[0], args.destdir[0] + '/' + args.dbtype[0]:
     safe_mkdir(d)
 
-  if args.password and not args.envtype:
+  if args.passwords and not args.envtype:
     die("-P requires -T")
 
-  loop_users(args.destdir[0] + '/' + args.dbtype[0], conn)
+  store_mysql_version(args.destdir[0] + '/' + args.dbtype[0], conn)
 
+  loop_users(args.destdir[0] + '/' + args.dbtype[0], conn)
 
   conn.close()
 
