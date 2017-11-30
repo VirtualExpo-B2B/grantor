@@ -3,10 +3,11 @@
 
 import argparse
 import os, sys
-import common
-
+from helpers.common import *
+from helpers.check_foo import *
 
 def loop_from_git(conn, permsdir, functions, envtype, envid):
+  logv_set(True)
 
   logv("List of functions: {}".format(functions))
 
@@ -17,31 +18,18 @@ def loop_from_git(conn, permsdir, functions, envtype, envid):
   
     dirs = os.listdir(functiondir)
 
-    for directory in dirs:
-      logv("directory: %s" % directory)
+    for user in dirs:
+      if user == 'mysql_version':
+        continue
+      logv("user: %s" % user)
 
+      #from helpers.common import quick_read
+      global_perms=quick_read(str(permsdir) + '/' + str(function) + '/' + str(user) + '/global_perms')
+      global_perms_line=global_perms.split("\n")
 
-#    for dirs in os.listdir(functiondir):
-#      logv("dir:" % dirs)
-#    for root, dirs, files in os.walk(functiondir):
-#      for filename in files:
-#        logv(os.path.join(root, filename))
-#      for dirname in dirs:
-#        logv(os.path.join(root, dirname))
-#        logv(
-   
-   
-   
-   #of = open(path, 'r')
+      check_foo_global_perms(conn, user, global_perms_line)
+
 
 if __name__ == "__main__":
-#  parser = argparse.ArgumentParser(description='')
-#  parser.add_argument('-v', '--verbose', default=False, action='store_true', help='tell me whattya doin')
-#  parser.add_argument('-f', '--functions', action='store', dest='function_list',
-#                        type=str, nargs='*', default=['site'],
-#                        help="Examples: -f site, -f site tech dmt")
-#
-#  args = parser.parse_args()
-
 
   loop_from_git('conn', '/home/claire/Repos/mysql/perms', ['site'], 'dev', 1)
