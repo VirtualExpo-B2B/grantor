@@ -1,12 +1,15 @@
+# vim: set sw=4
 #coding: utf8
+
 import pymysql
+import os, sys
 
 
 
 def quick_write(path, contents):
-  of = open(path, 'w')
-  of.write(contents)
-  of.close()
+    of = open(path, 'w')
+    of.write(contents)
+    of.close()
 
 
 def quick_read(path):
@@ -15,10 +18,14 @@ def quick_read(path):
     file.close()
     return content
 
+def die(str):
+    print(str)
+    sys.exit(0)
 
-def get_connection(db_hosts):
-    return pymysql.connect(host=db_hosts, user="dev", passwd="PleaseBeCareful")
-
+def logv(str):
+    global g_verbose
+    if g_verbose:
+        print(str)
 
 if __name__ == '__main__':
     print(quick_read('/home/hiacine.ghaoui/workspace/perms/site/mysql_version'))
