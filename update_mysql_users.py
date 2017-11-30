@@ -2,10 +2,10 @@
 
 import argparse
 import socket
-import os
+import os, re
 
 from helpers.common import *
-from helpers import *
+from helpers.loop_from_git import *
 
 # 0. check version?
 # 1. loop from git  ( conn, permsdir, list[functions], envtype, envid )
@@ -39,7 +39,7 @@ def get_envid_dev(hostname):
   else:
     return False
 
-def get_endid_staging(hostname):
+def get_envid_staging(hostname):
   s = re.search('velo6dblx0([0-9])-[0-9]', hostname)
   if s:
     return "stag" + s.group(1)
@@ -65,14 +65,20 @@ def main():
 
   logv("connecting to %s (user: %s)\n" % (args.server[0], args.user[0]))
   conn = pymysql.connect( host=args.server[0], user=args.user[0], passwd=args.passwd[0] )
+  cur = conn.cursor()
+  cur.execute("show variables like 'hostname'")
+  res = cur.fetchall()
+  hostname = res[0][1]
+
   logv("connected!")
 
   envs = { "1": "dev", "2": "preprod", "3": "prod", "6": "dev" }
-  hostname = socket.gethostname()
+  logv("hostname: %s" % hostname)
   s = re.search('ve[sl]o([0-9]).*', hostname)
   if s:
     envtype_n = s.group(1)
     envtype = envs[envtype_n]
+    logv("envtype: %s" % envtype)
   else:
     die("unable to determine envtype from %s\n" % ( hostname ))
 
