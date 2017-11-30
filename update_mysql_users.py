@@ -57,8 +57,7 @@ def main():
 
   args = parser.parse_args()
 
-  global g_verbose
-  g_verbose = args.verbose
+  logv_set(args.verbose)
 
   for f in args.functions_list:
     if not os.path.isdir(args.permsdir[0] + '/' + f):
