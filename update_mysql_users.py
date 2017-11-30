@@ -5,6 +5,9 @@ import socket
 import os
 import helpers
 
+logv = helpers.common.logv
+die = helpers.common.die
+
 # 0. check version?
 # 1. loop from git  ( conn, permsdir, list[functions], envtype, envid )
 # 2. loop from db   ( conn, permsdir, list[functions], envtype, envid )
@@ -54,6 +57,9 @@ def main():
   parser.add_argument('-f', nargs='*', required=True, help='function to restore [site/dwh/tech/dmt...]', type=str, dest='functions_list', action='store')
 
   args = parser.parse_args()
+
+  global g_verbose
+  g_verbose = args.verbose
 
   for f in args.f:
     if not os.path.isdir(args.permsdir[0] + '/' + f):
