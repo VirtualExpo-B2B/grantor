@@ -25,6 +25,28 @@ def check_foo_global_perms(conn, user, global_perms):
 
 
 
+def check_foo_hosts(conn, user, hosts):
+
+    identique=True
+
+    cur=conn.cursor()
+
+    print(hosts)
+
+    for host in hosts:
+
+        if len(host)>0:
+            cur.execute("SELECT Host FROM mysql.user WHERE User='%s'" % (user))
+            db_hosts=cur.fetchall()[0]
+            print(db_hosts)
+            '''
+            identique=val==db_val
+            if identique==False:
+                print("PAS PAREIL --> %s - %s " % (val,db_val))
+                return identique
+            '''
+
+    return identique
 
 
 
@@ -35,15 +57,15 @@ def check_foo_global_perms(conn, user, global_perms):
 
 
 
-
-def test():
+## juste des tests
+def test_globalperms():
     #check_foo_global_perms('velo1dblx01-1', 'app_scenario_bo', )
     from conn_hia import getconnection
     conn =getconnection()
 
     from helpers.common import quick_read
     s=quick_read('/home/hiacine.ghaoui/workspace/perms/site/app_scenario_bo/global_perms')
-    p=s.split("\n")
+    p=s.strip().split("\n")
 
     r=check_foo_global_perms(conn, 'app_scenario_bo', p)
 
@@ -51,10 +73,28 @@ def test():
 
     print(r)
 
+def test_hosts():
+    #check_foo_global_perms('velo1dblx01-1', 'app_scenario_bo', )
+    from conn_hia import getconnection
+    conn =getconnection()
+
+    from helpers.common import quick_read
+    s=quick_read('/home/hiacine.ghaoui/workspace/perms/site/app_scenario_bo/hosts/dev')
+    p=s.strip().split("\n")
+
+    print (p)
+   # r=check_foo_global_perms(conn, 'app_scenario_bo', p)
+
+    conn.close()
+
+   # print(r)
+
+
+
 
 
 if __name__ == '__main__':
-    test()
+    test_hosts()
 
 
 
