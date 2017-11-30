@@ -1,8 +1,9 @@
 #coding: utf8
 
 import pymysql
-from helpers.common import  quick_read
-from helpers.common import get_connection
+from helpers.common import  *
+
+
 
 
 
@@ -19,19 +20,25 @@ def check_mysql_version(conn, local_mysql_version_file):
 
     git_mysql_version=quick_read(local_mysql_version_file).split('-')[0]
 
+    print("%s / %s" % (git_mysql_version, version))
+
+
     return version==git_mysql_version
 
 
 
 if __name__ == '__main__':
 
-    #FIXME : à mettre dans un fichier commun, voir pour la recupe des user mdp
-    conn = get_connection("velo1dblx01-1")
+    from conn_hia import getconnection
+
+    conn = getconnection()
 
     # FIXME : voir comment faire pour le chemin
-    perms_dir = "/home/hiacine.ghaoui/workspace/perms"
 
-    v=check_mysql_version(conn, "%s/site/mysql_version" % (perms_dir))
+
+    v=check_mysql_version(conn, "/home/hiacine.ghaoui/workspace/perms/site/mysql_version")
+
+    print("yyy %s" % (v))
     conn.close()
 
 
