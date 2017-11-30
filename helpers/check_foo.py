@@ -59,6 +59,13 @@ def check_foo_hosts(envid, conn, user, hosts):
 
 
 
+# check if password in local is the same as the password in db
+def check_user_password(envid, conn, user, password_in_local):
+    cur = conn.cursor()
+    cur.execute("select Password from mysql.user where user ='%s'" % (user))
+    r=cur.fetchall()
+
+    return r[0][0].strip()==password_in_local.strip()
 
 
 
@@ -66,7 +73,7 @@ def check_foo_hosts(envid, conn, user, hosts):
 
 
 
-## juste des tests
+## juste des tests --------------------------- TO REMOVE AFTER --------------------------------------
 def test_globalperms():
     #check_foo_global_perms('velo1dblx01-1', 'app_scenario_bo', )
     from conn_hia import getconnection
@@ -94,14 +101,20 @@ def test_hosts():
     r=check_foo_hosts('ndev1',conn, 'app_scenario_bo', p)
 
     conn.close()
-
-
     print("test_hosts %s" % (r))
 
+def test_password():
+    print("test password")
+    from conn_hia import getconnection
+    conn = getconnection()
+
+    s = quick_read('/home/hiacine.ghaoui/workspace/perms/site/app_scenario_bo/passwords/dev')
+    r=check_user_password("", conn, 'app_scenario_bo', s)
+    print(r)
 
 
 if __name__ == '__main__':
-    test_hosts()
+    test_password()
 
 
 
