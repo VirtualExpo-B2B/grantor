@@ -2,7 +2,7 @@
 
 import argparse
 import socket
-
+import os
 import helpers
 
 # 0. check version?
@@ -28,13 +28,13 @@ def main():
   parser.add_argument('-p', '--passwd', nargs=1, help='password of the user', required=True)
   parser.add_argument('-P', '--permsdir', nargs=1, required=True, default=['../perms'], help='path to the perms directory')
   parser.add_argument('-v', '--verbose', default=False, action='store_true', help='tell me whattya doin')
-  parser.add_argument('-f', nargs='?', required=True, help='function to restore [site/dwh/tech/dmt...]')
+  parser.add_argument('-f', nargs='?', required=True, help='function to restore [site/dwh/tech/dmt...]', type=str)
 
   args = parser.parse_args()
 
   for f in args.f:
-    if not os.path.isdir(args.P + '/' + f):
-      die("function %s doesn't exist in %s\n" % (args.P, f))
+    if not os.path.isdir(args.permsdir + '/' + f):
+      die("function %s doesn't exist in %s\n" % (args.permsdir, f))
 
   logv("connecting to %s (user: %s)\n" % (args.server[0], args.user[0]))
   conn = pymysql.connect( host=args.server[0], user=args.user[0], passwd=args.passwd[0] )
@@ -50,8 +50,8 @@ def main():
 
 
 
-  loop_from_git(conn, args.P, args.f, envtype, envid)
-  loop_from_db(conn, args.P, args.f, envtype, envid)
+  loop_from_git(conn, args.permsdir, args.f, envtype, envid)
+  loop_from_db(conn, args.permsdir, args.f, envtype, envid)
 
 
 if __name__ == "__main__":
