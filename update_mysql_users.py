@@ -9,17 +9,40 @@ import helpers
 # 1. loop from git  ( conn, permsdir, list[functions], envtype, envid )
 # 2. loop from db   ( conn, permsdir, list[functions], envtype, envid )
 
-def get_envid_prod():
-  True
 
-def get_envid_preprod():
-  True
 
-def get_envid_dev():
-  True
+# FIXME: those routines need to support every database servers
 
-def get_endid_staging():
-  True
+def get_envid_prod(hostname):
+  return "prod"
+
+def get_envid_preprod(hostname):
+  # veso2dblxN-M
+  #            ^
+  # veso2dwhlx01
+  #           ^^
+  # veso2ssolx01-1
+  #           ^^
+  s = re.search('veso2dblx01-([0-9])', hostname)
+  if s:
+    return "preprod" + s.group(1)
+  else:
+    return False
+
+def get_envid_dev(hostname):
+  # velo1ssolx01-1
+  s = re.search('velo1dblx0([0-9])-[0-9]', hostname)
+  if s:
+    return "ndev" + s.group(1)
+  else:
+    return False
+
+def get_endid_staging(hostname):
+  s = re.search('velo6dblx0([0-9])-[0-9]', hostname)
+  if s:
+    return "stag" + s.group(1)
+  else:
+    return False
 
 def main():
   parser = argparse.ArgumentParser(prog='update_mysql_users.py', description='Applies permissions to a MySQL instance')
@@ -44,11 +67,13 @@ def main():
   hostname = socket.gethostname()
   s = re.search('ve[sl]o([0-9]).*', hostname)
   if s:
-    envtype = envs[s.group(1)]
+    envtype_n = s.group(1)
+    envtype = envs[envtype_n]
   else:
     die("unable to determine envtype from %s\n" % ( hostname ))
 
-
+  fmap = { "1": get_envid_dev, "2": get_envid_preprod, "3": get_envid_prod, "6": get_envid_staging }
+  envid = fmap[envtype_n](hostname) or die("unable to determine envid")
 
   loop_from_git(conn, args.P, args.f, envtype, envid)
   loop_from_db(conn, args.P, args.f, envtype, envid)
