@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 #coding: utf8
 
-import helpers.common
-import helpers.mappings
-
+from common import *
 
 # vérifie si les global_pemrs d'un ursr (passée en param) son identique à celles trouvée en base
 def check_foo_global_perms(conn, user, global_perms):
