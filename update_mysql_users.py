@@ -60,8 +60,8 @@ def main():
   logv_set(args.verbose)
 
   for f in args.functions_list:
-    if not os.path.isdir(args.permsdir[0] + '/' + f):
-      die("function %s doesn't exist in %s\n" % (args.permsdir[0], f))
+    if not os.path.isdir(args.permsdir + '/' + f):
+      die("function %s doesn't exist in %s\n" % (args.permsdir, f))
 
   logv("connecting to %s (user: %s)\n" % (args.server[0], args.user[0]))
   conn = pymysql.connect( host=args.server[0], user=args.user[0], passwd=args.passwd[0] )
