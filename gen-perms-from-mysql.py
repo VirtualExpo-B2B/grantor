@@ -210,7 +210,7 @@ def store_mysql_version(d, conn):
   cur.execute('SHOW VARIABLES LIKE "version"')
   version = cur.fetchall()[0][1]
   f = open(d + '/mysql_version', 'w')
-  f.write(version + "\n")
+  f.write(version.split('-')[0] + "\n")
   f.close()
 
 def main():
