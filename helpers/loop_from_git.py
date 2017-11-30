@@ -23,9 +23,12 @@ def loop_from_git(conn, permsdir, functions, envtype, envid):
         continue
       logv("user: %s" % user)
 
+      if not os.path.isfile(makepath(permsdir,function,user,'global_perms')):
+        continue
+    
       #from helpers.common import quick_read
-      global_perms=quick_read(str(permsdir) + '/' + str(function) + '/' + str(user) + '/global_perms')
-      global_perms_line=global_perms.split("\n")
+      global_perms=quick_read(makepath(permsdir,function,user,'global_perms'))
+      global_perms_line=global_perms.strip().split("\n")
 
       check_foo_global_perms(conn, user, global_perms_line)
 
