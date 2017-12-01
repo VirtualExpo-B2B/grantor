@@ -6,6 +6,7 @@ import os, re
 
 from helpers.common import *
 from helpers.loop_from_git import *
+from helpers.loop_from_db import *
 
 # 0. check version?
 # 1. loop from git  ( conn, permsdir, list[functions], envtype, envid )

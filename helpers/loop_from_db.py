@@ -1,8 +1,6 @@
-# vim: set sw=4
-
 import os
-from mappings import *
-from common import *
+from helpers.mappings import *
+from helpers.common import *
 
 def drop_user(conn, user, host):
     cur = conn.cursor()
@@ -18,7 +16,7 @@ def check_global_users(conn, permsdir, functions, envtype, envid):
     cur = conn.cursor()
     res = cur.execute('SELECT User, Host FROM mysql.user')
 
-    for line in res.fetchall():
+    for line in cur.fetchall():
         user = line[0]
         sql_host = line[1]
 
@@ -29,11 +27,14 @@ def check_global_users(conn, permsdir, functions, envtype, envid):
 
         foundit = False
         for f in functions:
-            r = quick_read(makepath(permsdir, f,  user, 'hosts', envtype) or break
-            meta = r.split('\n')
-            if m in meta:
-                foundit = True
+            if not os.path.isfile(makepath(permsdir, f,  user, 'hosts', envtype)):
                 break
+            else:
+                r = quick_read(makepath(permsdir, f,  user, 'hosts', envtype))
+                meta = r.split('\n')
+                if m in meta:
+                    foundit = True
+                    break
 
         if foundit == False:
                 logv("dropping user %s@%s" % (user, host))
