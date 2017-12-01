@@ -14,14 +14,14 @@ def revoke_db_privs(conn, user, host, db):
 
 def check_global_users(conn, permsdir, functions, envtype, envid):
     cur = conn.cursor()
-    res = cur.execute('SELECT User, Host FROM mysql.user')
+    cur.execute('SELECT User, Host FROM mysql.user')
 
     for line in cur.fetchall():
         user = line[0]
         sql_host = line[1]
 
         # reverse lookup
-        host = map_meta_from_host(sql_host)
+        meta_host = get_meta_from_host(sql_host)
 
         # m = folx
 
@@ -32,20 +32,20 @@ def check_global_users(conn, permsdir, functions, envtype, envid):
             else:
                 r = quick_read(makepath(permsdir, f,  user, 'hosts', envtype))
                 meta = r.split('\n')
-                if m in meta:
+                if meta_host in meta:
                     foundit = True
                     break
 
         if foundit == False:
-                logv("dropping user %s@%s" % (user, host))
-                drop_user(conn, user, host)
+                logv("dropping user %s@%s" % (user, sql_host))
+                drop_user(conn, user, sql_host)
 
 def check_db_privs(conn, permsdir, functions, envtype, envid):
 
     cur = conn.cursor()
-    res = cur.execute("SELECT * FROM mysql.db")
+    cur.execute("SELECT * FROM mysql.db")
 
-    for row in res.fetchall():
+    for row in cur.fetchall():
         host = row[0]
         db = row[1]
         user = row[2]
@@ -70,9 +70,9 @@ def delete_table_priv(conn, host, db, user, table_name):
 # iterates over each row of mysql.tables_priv
 def check_tables_privs(conn, permsdir, functions, envtype, envid):
     cur = conn.cursor()
-    res = cur.execute("SELECT Host, Db, User, Table_name FROM mysql.tables_priv")
+    cur.execute("SELECT Host, Db, User, Table_name FROM mysql.tables_priv")
 
-    for host, db, user, table_name in res.fetchall():
+    for host, db, user, table_name in cur.fetchall():
         found = False
         for f in functions:
             if os.path.isfile(makepath(permsdir, f, user, 'databases', db, 'tables', table_name)):

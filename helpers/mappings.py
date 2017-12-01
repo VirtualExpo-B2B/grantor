@@ -63,11 +63,6 @@ def get_meta_from_host(host):
   else:
     return False
 
-def map_meta_from_host(sql_host):
-  print("map_meta_from_host")
-  host = sql_host
-  return host
-
 if __name__ == '__main__':
       r=get_hosts_from_meta("","ndev1","localhost")
       print(r)
