@@ -17,7 +17,7 @@ def ensure_global_perms(conn, permsdir, function, user):
         sql_hostlist = get_hosts_from_meta(envtype, envid, meta_host)
         for sql_host in sql_hostlist:
             if not check_global_perms_ok(conn, user, sql_host, global_perms_content):
-              apply_global_perms(conn, user, sql_host, global_perms_content)
+                apply_global_perms(conn, user, sql_host, global_perms_content)
 
 def ensure_db_perms(conn, permsdir, function, user, db):
     logv("in check_dp_perms")  
