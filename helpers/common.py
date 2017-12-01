@@ -22,7 +22,7 @@ def quick_read(path):
         file = open(path, 'r')
         content=file.read()
         file.close()
-        return content
+        return content.strip()
     except:
         return False
 

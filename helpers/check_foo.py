@@ -7,7 +7,7 @@ from helpers.mappings import *
 
 # vérifie si les global_pemrs d'un ursr (passée en param) son uptodate à celles trouvée en base
 # check whether global_perms for a specific user@sql_host are up-to-date against an array of permissions
-def check_global_perms(conn, user, sql_host, global_perms_content):
+def check_global_perms_ok(conn, user, sql_host, global_perms_content):
     uptodate=True
     cur=conn.cursor()
 
@@ -56,17 +56,21 @@ def check_foo_hosts(envid, conn, user, hosts):
 
 
 # check if password in local is the same as the password in db
-def check_user_password(envid, conn, user, password_in_local):
+def check_user_password(conn, user, sql_host, password):
     cur = conn.cursor()
-    cur.execute("select Password from mysql.user where user ='%s'" % (user))
-    r=cur.fetchall()
+    cur.execute("select Password from mysql.user where user ='%s' AND host='%s'" % (user, sql_host))
+    r = cur.fetchall()
 
-    return r[0][0].strip()==password_in_local.strip()
+    return r[0][0] == password
+
+def apply_user_password(conn, user, sql_host, password):
+    cur = conn.cursor()
+    cur.execute("UPDATE mysql.user SET password = '%s' WHERE user='%s' AND host='%s'" % ( password, user, sql_host ))
+    cur.fetchall()
 
 
 # check si le contenu des droits databases sur le filer est uptodate au droits database en db
 def check_user_for_database(envid, conn, user, user_local_dir):
-
     sql_get_user_host="SELECT DISTINCT Host FROM mysql.tables_priv WHERE User = '%s' limit 1" % (user)
     cur=conn.cursor()
     cur.execute(sql_get_user_host)

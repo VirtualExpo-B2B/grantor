@@ -25,6 +25,10 @@ def ensure_global_perms(conn, permsdir, function, user, envtype, envid):
                 if not check_global_perms_ok(conn, user, sql_host, global_perms_content):
                     apply_global_perms(conn, user, sql_host, global_perms_content)
 
+                password = quick_read(makepath(permsdir, function, user, passwords, envtype)
+                if not check_user_password(conn, user, sql_host, password):
+                    apply_user_password(conn, user, sql_host, password)
+
 def ensure_db_perms(conn, permsdir, function, user, db):
     logv("voila")
 
@@ -48,9 +52,7 @@ def loop_from_git(conn, permsdir, functions, envtype, envid):
             continue
         logv("user: %s" % user)
 
-        if not os.path.isfile(makepath(permsdir,function,user,'global_perms')):
-            continue
-        else:
+        if os.path.isfile(makepath(permsdir,function,user,'global_perms')):
             if not ensure_global_perms(conn, permsdir, function, user, envtype, envid):
                 if not dry_run:
                     apply_global_perms(conn, permsdir, function, user)
@@ -59,9 +61,7 @@ def loop_from_git(conn, permsdir, functions, envtype, envid):
             else:
                 logv("global perms OK for %s" % (user))
 
-        if not os.path.isdir(makepath(permsdir, function, user, 'databases')):
-            continue
-        else:
+        if os.path.isdir(makepath(permsdir, function, user, 'databases')):
             for db in os.listdir(makepath(permsdir, function, user, 'databases')):
                 if not os.path.isfile(makepath(permsdir, function, user, 'databases', db, 'perms')):
                     continue
