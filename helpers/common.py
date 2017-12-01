@@ -61,7 +61,9 @@ def is_this_array_is_in_the_other(array_one, array_two):
     for val in array_one:
         print(val)
         if val not in array_two:
-            print("difference in %s" % (val))
+            print(array_one)
+            print(array_two)
+
             return False
 
     return True

@@ -5,6 +5,7 @@
 from helpers.common import *
 from helpers.mappings import *
 
+
 # vérifie si les global_pemrs d'un ursr (passée en param) son uptodate à celles trouvée en base
 # check whether global_perms for a specific user@sql_host are up-to-date against an array of permissions
 def check_global_perms(conn, user, sql_host, global_perms_content):
