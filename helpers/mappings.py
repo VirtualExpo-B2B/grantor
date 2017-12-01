@@ -1,4 +1,6 @@
-# vim: set sw=4
+#!/usr/bin/env python3
+#coding: utf8
+#  vim: set sw=4
 
 
 

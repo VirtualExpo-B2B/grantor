@@ -1,5 +1,6 @@
-# vim: set sw=4
+#!/usr/bin/env python3
 #coding: utf8
+#  vim: set sw=4
 
 import pymysql
 import os, sys
@@ -58,12 +59,26 @@ def makepath(*arg):
 def is_this_array_is_in_the_other(array_one, array_two):
 
     for val in array_one:
+        print(val)
         if val not in array_two:
             return False
 
     return True
 
 
+# depuis un chemin, lit les dossiers et fichiers et met tout ça dans un array de la même structure
+def read_folder_to_array(envid, path):
+    return os.walk(path)
 
 
 
+
+
+
+
+
+#FIXME
+# TESTS -------------------------------------------------TO REMOVE-AFTER
+if __name__ == '__main__':
+
+    print()

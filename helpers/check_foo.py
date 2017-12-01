@@ -2,8 +2,8 @@
 #coding: utf8
 
 
-from common import *
-from mappings import *
+from helpers.common import *
+from helpers.mappings import *
 
 # vérifie si les global_pemrs d'un ursr (passée en param) son identique à celles trouvée en base
 def check_global_perms_for_user(conn, user, sql_host, global_perms_content):
@@ -69,7 +69,7 @@ def check_user_password(envid, conn, user, password_in_local):
 
 
 # check si le contenu des droits databases sur le filer est identique au droits database en db
-def check_user_for_database(envid, conn, user, jesaispastropquoi):
+def check_user_for_database(envid, conn, user, user_local_dir):
 
     sql_get_user_host="SELECT DISTINCT Host FROM mysql.tables_priv WHERE User = '%s' limit 1" % (user)
     cur=conn.cursor()
@@ -83,16 +83,47 @@ def check_user_for_database(envid, conn, user, jesaispastropquoi):
 
     cur.execute(sql_get_user_priv_for_host)
 
-    for priv in cur.fetchall():
-        print(priv)
+    priv = cur.fetchall()
+
+
+    droits_local=['',]
+    droits_local.remove('')
+
+    p = read_folder_to_array('', user_local_dir)
+    for path, subdirs, files in p:
+
+        if 'databases' in path.split('/') and 'tables' in path.split('/'):
+
+            db=path.replace(user_local_dir + "databases/",'').replace('/tables','')
+            droits_local.append((db,files[0],quick_read(path + "/" + files[0])))
 
 
 
-    return 1
+    print(priv)
+    print(droits_local)
+    if not is_this_array_is_in_the_other(priv, droits_local):
+        print('first')
+        return False
+
+    if not is_this_array_is_in_the_other(droits_local,priv):
+        print('second')
+        return False
+
+    return True
+
 
 
 
 ## juste des tests --------------------------- TO REMOVE AFTER --------------------------------------
+def test_databasepriv():
+    print("test database")
+    from conn_hia import getconnection
+    conn = getconnection()
+
+    r=check_user_for_database("", conn, 'app_scenario_bo','/home/hiacine.ghaoui/workspace/perms/site/app_inovo/')
+    print(r)
+
+'''
 def test_globalperms():
     #check_foo_global_perms('velo1dblx01-1', 'app_scenario_bo', )
     from conn_hia import getconnection
@@ -107,7 +138,8 @@ def test_globalperms():
     conn.close()
 
     print(r)
-
+'''
+'''
 def test_hosts():
     #check_foo_global_perms('velo1dblx01-1', 'app_scenario_bo', )
     from conn_hia import getconnection
@@ -121,7 +153,8 @@ def test_hosts():
 
     conn.close()
     print("test_hosts %s" % (r))
-
+'''
+'''
 def test_password():
     print("test password")
     from conn_hia import getconnection
@@ -130,14 +163,8 @@ def test_password():
     s = quick_read('/home/hiacine.ghaoui/workspace/perms/site/app_scenario_bo/passwords/dev')
     r=check_user_password("", conn, 'app_scenario_bo', s)
     print(r)
+'''
 
-
-def test_databasepriv():
-    print("test database")
-    from conn_hia import getconnection
-    conn = getconnection()
-
-    check_user_for_database("", conn, 'app_scenario_bo','')
 
 
 if __name__ == '__main__':
