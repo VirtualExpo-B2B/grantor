@@ -86,7 +86,9 @@ def main():
   fmap = { "1": get_envid_dev, "2": get_envid_preprod, "3": get_envid_prod, "6": get_envid_staging }
   envid = fmap[envtype_n](hostname) or die("unable to determine envid")
 
+  logv("lopping from git")
   loop_from_git(conn, str(args.permsdir), args.functions_list, envtype, envid)
+  logv("looping from db")
   loop_from_db(conn, args.permsdir, args.functions_list, envtype, envid)
 
 

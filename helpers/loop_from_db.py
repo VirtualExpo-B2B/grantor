@@ -19,6 +19,7 @@ def check_global_users(conn, permsdir, functions, envtype, envid):
     for line in cur.fetchall():
         user = line[0]
         sql_host = line[1]
+        logv("working on %s@%s" % ( user, sql_host ) )
 
         # reverse lookup
         meta_host = get_meta_from_host(sql_host)
@@ -33,6 +34,7 @@ def check_global_users(conn, permsdir, functions, envtype, envid):
                 r = quick_read(makepath(permsdir, f,  user, 'hosts', envtype))
                 meta = r.split('\n')
                 if meta_host in meta:
+                    logv("user %s@%s seems OK" % ( user, sql_host ))
                     foundit = True
                     break
 
@@ -82,6 +84,9 @@ def check_tables_privs(conn, permsdir, functions, envtype, envid):
             delete_table_priv(conn, host, db, user, table_name)
 
 def loop_from_db(conn, permsdir, functions, envtype, envid):
+    logv('loop_from_db: working on global privs')
     check_global_users(conn, permsdir, functions, envtype, envid)
+    logv('loop_from_db: working on db privs')
     check_db_privs(conn, permsdir, functions, envtype, envid)
+    logv('loop_from_db: working on tables privs')
     check_tables_privs(conn, permsdir, functions, envtype, envid)
