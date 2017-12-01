@@ -107,7 +107,8 @@ def check_user_for_database(envid, conn, user, user_local_dir):
 
     return True
 
-
+def check_db_perms(arg1, arg2, arg3, arg4, arg5):
+    print("check db perms")
 
 
 ## juste des tests --------------------------- TO REMOVE AFTER --------------------------------------

@@ -5,6 +5,9 @@ import argparse
 import os, sys
 from helpers.common import *
 from helpers.check_foo import *
+from helpers.update_user_priv import *
+
+dry_run = False
 
 def ensure_global_perms(conn, permsdir, function, user, envtype, envid):
     global_perms = quick_read(makepath(permsdir, function, user, 'global_perms'))
