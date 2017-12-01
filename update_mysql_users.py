@@ -34,7 +34,7 @@ def get_envid_preprod(hostname):
 
 def get_envid_dev(hostname):
   # velo1ssolx01-1
-  s = re.search('velo1dblx0([0-9])-[0-9]', hostname)
+  s = re.search('velo1dblx0([0-9])*', hostname)
   if s:
     return "ndev" + s.group(1)
   else:
