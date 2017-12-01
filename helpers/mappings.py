@@ -45,14 +45,24 @@ map = {
 # convert meta-hosts to an array of MySQL hosts
 # folx on ndev1 -> [172.16.130.%]
 def get_hosts_from_meta(envtype, envid, meta_host):
-  # FIXME : WHAT IS envtype and envid
-  arr=['',]
-  arr.remove('')
-  for val in map:
-     if meta_host==map[val]:
-         arr.append(val)
-
-  return arr
+    foo = { "folx": [ "172.16.130.%" ],
+            "solx": [ "172.16.133.%" ],
+            "dblx": [ "172.16.131.%" ],
+            "bolx": [ "172.16.133.%" ],
+            "wklx": [ "172.16.132.%" ],
+            "ssolx": [ "172.16.134.%" ],
+            "velo30": [ "172.16.30.%" ],
+            "velo40": [ "172.16.40.%" ],
+            "velo50": [ "172.16.50.%" ],
+            "veso": [ "10.80.%.%" ],
+           "any": [ "%" ],
+           "admlx": [ "10.80.41.%" ],
+           "applx": [ "10.80.50.%" ], # FIXME?
+           "localhost": [ "127.0.0.1", "localhost", "::1" ],
+           "net-vpn": [ "172.16.100.%", "172.16.200.%" ],
+           "net-priv": [ "172.16.10.%" ],
+           "net-adm": [ "172.16.11.%" ], }
+    return foo[meta_host]
 
 
 # convert MySQL host to meta

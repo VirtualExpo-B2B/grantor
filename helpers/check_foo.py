@@ -14,9 +14,14 @@ def check_global_perms_ok(conn, user, sql_host, global_perms_content):
 
     for gperm in global_perms_content:
         if len(gperm) > 0:
+            logv("checking priv %s for user %s@%s" % ( gperm[0], user, sql_host ) )
             cur.execute("SELECT %s FROM mysql.user WHERE User='%s' AND Host='%s'" % (gperm[0], user, sql_host))
             # FIXME: assert 1 row?
-            db_val = cur.fetchall()[0][0]
+            res = cur.fetchall()
+            if len(res) == 0:
+              log("user %s@%s doesn't exist yet, triggering update" % ( user, sql_host ))
+              return False
+            db_val = res[0][0]
             val = gperm[1]
             uptodate = (val == db_val)
             if uptodate == False:
@@ -62,7 +67,8 @@ def check_user_password(conn, user, sql_host, password):
     cur = conn.cursor()
     cur.execute("select Password from mysql.user where user ='%s' AND host='%s'" % (user, sql_host))
     r = cur.fetchall()
-
+    if len(r) == 0:
+      return False
     return r[0][0] == password
 
 def apply_user_password(conn, user, sql_host, password):
