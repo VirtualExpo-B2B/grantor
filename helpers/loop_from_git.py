@@ -6,7 +6,7 @@ import os, sys
 from helpers.common import *
 from helpers.check_foo import *
 
-def ensure_global_perms(conn, permsdir, function, user):
+def ensure_global_perms(conn, permsdir, function, user, envtype, envid):
     global_perms = quick_read(makepath(permsdir, function, user, 'global_perms'))
     global_perms_content = []
     for line in global_perms.strip().split("\n"):
@@ -20,9 +20,10 @@ def ensure_global_perms(conn, permsdir, function, user):
                 apply_global_perms(conn, user, sql_host, global_perms_content)
 
 def ensure_db_perms(conn, permsdir, function, user, db):
-
+    logv("voila")
 
 def ensure_table_perms(conn, permsdir, function, user, db):
+    logv("voila")
 
 
 
@@ -44,7 +45,7 @@ def loop_from_git(conn, permsdir, functions, envtype, envid):
         if not os.path.isfile(makepath(permsdir,function,user,'global_perms')):
             continue
         else:
-            if not ensure_global_perms(conn, permsdir, function, user):
+            if not ensure_global_perms(conn, permsdir, function, user, envtype, envid):
                 if not dry_run:
                     apply_global_perms(conn, permsdir, function, user)
                 else:
