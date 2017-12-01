@@ -5,31 +5,28 @@
 from helpers.common import *
 from helpers.mappings import *
 
-# vérifie si les global_pemrs d'un ursr (passée en param) son identique à celles trouvée en base
-def check_global_perms_for_user(conn, user, sql_host, global_perms_content):
+# vérifie si les global_pemrs d'un ursr (passée en param) son uptodate à celles trouvée en base
+# check whether global_perms for a specific user@sql_host are up-to-date against an array of permissions
+def check_global_perms(conn, user, sql_host, global_perms_content):
+  uptodate=True
+  cur=conn.cursor()
 
-    identique=True
+  for gperm in global_perms_content:
 
-    cur=conn.cursor()
+  if len(gperm) > 0:
+    cur.execute("SELECT %s FROM mysql.user WHERE User='%s' AND Host='%s'" % (gperm[0], user, sql_host))
+    # FIXME: assert 1 row?
+    db_val=cur.fetchall()[0][0]
+    val=gperm[1]
+    uptodate=val==db_val
+    if uptodate==False:
+      logv("user %s@%s: global permissions are not up-to-date" % (user, sql_host)
+      return uptodate
 
-    for gperm in global_perms_content:
-
-        if len(gperm)>0:
-            cur.execute("SELECT %s FROM mysql.user WHERE User='%s' AND Host='%s'" % (gperm.split(':')[0], user, sql_host))
-            # FIXME: assert 1 row!
-            db_val=cur.fetchall()[0][0]
-            val=gperm.split(':')[1].strip()
-            identique=val==db_val
-            if identique==False:
-                print("PAS PAREIL --> %s - %s " % (val,db_val))
-                return identique
-
-    return identique
-
+    return uptodate
 
 
 ## check if host in local is the same as the hos in db for a user
-
 def check_foo_hosts(envid, conn, user, hosts):
     cur=conn.cursor()
 
@@ -68,7 +65,7 @@ def check_user_password(envid, conn, user, password_in_local):
     return r[0][0].strip()==password_in_local.strip()
 
 
-# check si le contenu des droits databases sur le filer est identique au droits database en db
+# check si le contenu des droits databases sur le filer est uptodate au droits database en db
 def check_user_for_database(envid, conn, user, user_local_dir):
 
     sql_get_user_host="SELECT DISTINCT Host FROM mysql.tables_priv WHERE User = '%s' limit 1" % (user)

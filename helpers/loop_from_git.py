@@ -6,17 +6,20 @@ import os, sys
 from helpers.common import *
 from helpers.check_foo import *
 
-def check_global_perms(conn, permsdir, function, user):
+def ensure_global_perms(conn, permsdir, function, user):
     global_perms = quick_read(makepath(permsdir, function, user, 'global_perms'))
     global_perms_content = global_perms.strip().split("\n")
+    for k in keys(global_perms_content):
+      global_perms_content[k] = global_perms_content[k].split(':')
 
     meta_hostlist = quick_read(makepath(permsdir,function,user,'hosts',envtype))
     for meta_host in meta_hostlist:
         sql_hostlist = get_hosts_from_meta(envtype, envid, meta_host)
         for sql_host in sql_hostlist:
-            check_foo_global_perms(conn, user, sql_host, global_perms_content)
+            if not check_global_perms_ok(conn, user, sql_host, global_perms_content):
+              apply_global_perms(conn, user, sql_host, global_perms_content)
 
-def check_db_perms(conn, permsdir, function, user, db):
+def ensure_db_perms(conn, permsdir, function, user, db):
     
 
 
@@ -38,13 +41,7 @@ def loop_from_git(conn, permsdir, functions, envtype, envid):
       if not os.path.isfile(makepath(permsdir,function,user,'global_perms')):
         continue
       else:
-        if not check_global_perms_ok(conn, permsdir, function, user):
-          if not dry_run:
-            apply_global_perms(conn, permsdir, function, user)
-          else:
-            logv("global perms not OK for %s" % (user)
-        else:
-            logv("global perms OK for %s" % (user))
+        ensure_global_perms(conn, permsdir, function, user):
 
       for db in os.listdir(makepath(permsdir, function, user, 'databases')):
         if not os.path.isfile(makepath(permsdir, function, user, 'databases', db, 'perms')):
