@@ -10,7 +10,7 @@ def ensure_global_perms(conn, permsdir, function, user):
     global_perms = quick_read(makepath(permsdir, function, user, 'global_perms'))
     global_perms_content = global_perms.strip().split("\n")
     for k in keys(global_perms_content):
-      global_perms_content[k] = global_perms_content[k].split(':')
+        global_perms_content[k] = global_perms_content[k].split(':')
 
     meta_hostlist = quick_read(makepath(permsdir,function,user,'hosts',envtype))
     for meta_host in meta_hostlist:
