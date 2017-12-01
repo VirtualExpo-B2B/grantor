@@ -54,6 +54,7 @@ def check_db_privs(conn, permsdir, functions, envtype, envid):
         db = row[1]
         user = row[2]
 
+        logv("checking %s@%s on db %s" % ( user, host, db ) )
         # this is quite easy: if the file exists in permsdir,
         # then the proper perms will have been applied during
         # the previous stage. if the file is absent in permsdir,
@@ -77,6 +78,7 @@ def check_tables_privs(conn, permsdir, functions, envtype, envid):
     cur.execute("SELECT Host, Db, User, Table_name FROM mysql.tables_priv")
 
     for host, db, user, table_name in cur.fetchall():
+        logv("checking %s@%s on db %s.%s" % ( user, host, db, table_name ) )
         found = False
         for f in functions:
             if os.path.isfile(makepath(permsdir, f, user, 'databases', db, 'tables', table_name)):
