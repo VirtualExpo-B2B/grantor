@@ -5,6 +5,7 @@
 from helpers.common import *
 from helpers.mappings import *
 
+
 # vérifie si les global_pemrs d'un ursr (passée en param) son uptodate à celles trouvée en base
 # check whether global_perms for a specific user@sql_host are up-to-date against an array of permissions
 def check_global_perms_ok(conn, user, sql_host, global_perms_content):
@@ -45,10 +46,7 @@ def check_foo_hosts(envid, conn, user, hosts):
 
 
 
-    if not is_this_array_is_in_the_other(db_hosts, filer_hosts_list):
-        return False
-
-    if not is_this_array_is_in_the_other(filer_hosts_list,db_hosts):
+    if not compare_array(db_hosts, filer_hosts_list):
         return False
 
     return True
@@ -101,13 +99,9 @@ def check_user_for_database(envid, conn, user, user_local_dir):
 
     print(priv)
     print(droits_local)
-    if not is_this_array_is_in_the_other(priv, droits_local):
-        print('first')
+    if not compare_array(priv, droits_local):
         return False
 
-    if not is_this_array_is_in_the_other(droits_local,priv):
-        print('second')
-        return False
 
     return True
 

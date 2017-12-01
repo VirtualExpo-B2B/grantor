@@ -61,7 +61,18 @@ def is_this_array_is_in_the_other(array_one, array_two):
     for val in array_one:
         print(val)
         if val not in array_two:
+            print(array_one)
+            print(array_two)
+
             return False
+
+    return True
+
+def compare_array(array_one, array_two):
+    if not is_this_array_is_in_the_other(array_one, array_two):
+        return False
+    if not is_this_array_is_in_the_other(array_two,array_one):
+        return False
 
     return True
 
