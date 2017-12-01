@@ -62,9 +62,9 @@ def check_db_privs(conn, permsdir, functions, envtype, envid):
             revoke_db_privs(conn, user, host, db)
 
 def delete_table_priv(conn, host, db, user, table_name):
-   cur = conn.cursor()
-   cur.execute("DELETE FROM mysql.tables_priv WHERE User='%s' AND Db='%s' AND Host='%s' AND Table_name='%s'" % ( user, db, host, table_name ))
-   cur.fetchall()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM mysql.tables_priv WHERE User='%s' AND Db='%s' AND Host='%s' AND Table_name='%s'" % ( user, db, host, table_name ))
+    cur.fetchall()
 
 # iterates over each row of mysql.tables_priv
 def check_tables_privs(conn, permsdir, functions, envtype, envid):
