@@ -23,6 +23,7 @@ def check_global_perms_ok(conn, user, sql_host, global_perms_content):
                 logv("user %s@%s: global permissions are not up-to-date" % (user, sql_host))
                 return uptodate
 
+    logv("user %s@%s: global permissions are up-to-date" % (user, sql_host))
     return uptodate
 
 
@@ -51,10 +52,13 @@ def check_foo_hosts(envid, conn, user, hosts):
 
     return True
 
+def check_db_perms(conn, permsdir, function, user, db):
+    True
 
 
 # check if password in local is the same as the password in db
 def check_user_password(conn, user, sql_host, password):
+    logv("checking password for user %s@%s" % ( user, sql_host ) )
     cur = conn.cursor()
     cur.execute("select Password from mysql.user where user ='%s' AND host='%s'" % (user, sql_host))
     r = cur.fetchall()
@@ -62,6 +66,7 @@ def check_user_password(conn, user, sql_host, password):
     return r[0][0] == password
 
 def apply_user_password(conn, user, sql_host, password):
+    logv("updating password for user %s@%s" % ( user, sql_host ) )
     cur = conn.cursor()
     cur.execute("UPDATE mysql.user SET password = '%s' WHERE user='%s' AND host='%s'" % ( password, user, sql_host ))
     cur.fetchall()
@@ -104,9 +109,6 @@ def check_user_for_database(envid, conn, user, user_local_dir):
 
 
     return True
-
-def check_db_perms(arg1, arg2, arg3, arg4, arg5):
-    print("check db perms")
 
 
 ## juste des tests --------------------------- TO REMOVE AFTER --------------------------------------
