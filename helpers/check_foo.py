@@ -8,20 +8,19 @@ from helpers.mappings import *
 # vérifie si les global_pemrs d'un ursr (passée en param) son uptodate à celles trouvée en base
 # check whether global_perms for a specific user@sql_host are up-to-date against an array of permissions
 def check_global_perms(conn, user, sql_host, global_perms_content):
-  uptodate=True
-  cur=conn.cursor()
+    uptodate=True
+    cur=conn.cursor()
 
   for gperm in global_perms_content:
-
-  if len(gperm) > 0:
-    cur.execute("SELECT %s FROM mysql.user WHERE User='%s' AND Host='%s'" % (gperm[0], user, sql_host))
-    # FIXME: assert 1 row?
-    db_val=cur.fetchall()[0][0]
-    val=gperm[1]
-    uptodate=val==db_val
-    if uptodate==False:
-      logv("user %s@%s: global permissions are not up-to-date" % (user, sql_host)
-      return uptodate
+      if len(gperm) > 0:
+          cur.execute("SELECT %s FROM mysql.user WHERE User='%s' AND Host='%s'" % (gperm[0], user, sql_host))
+          # FIXME: assert 1 row?
+          db_val = cur.fetchall()[0][0]
+          val = gperm[1]
+          uptodate = (val == db_val)
+          if uptodate == False:
+              logv("user %s@%s: global permissions are not up-to-date" % (user, sql_host))
+              return uptodate
 
     return uptodate
 
