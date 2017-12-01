@@ -25,7 +25,7 @@ def ensure_global_perms(conn, permsdir, function, user, envtype, envid):
                 if not check_global_perms_ok(conn, user, sql_host, global_perms_content):
                     apply_global_perms(conn, user, sql_host, global_perms_content)
 
-                password = quick_read(makepath(permsdir, function, user, passwords, envtype)
+                password = quick_read(makepath(permsdir, function, user, passwords, envtype))
                 if not check_user_password(conn, user, sql_host, password):
                     apply_user_password(conn, user, sql_host, password)
 
