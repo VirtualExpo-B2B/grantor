@@ -20,39 +20,45 @@ def ensure_global_perms(conn, permsdir, function, user):
               apply_global_perms(conn, user, sql_host, global_perms_content)
 
 def ensure_db_perms(conn, permsdir, function, user, db):
-    
+    logv("in check_dp_perms")  
 
 
 def loop_from_git(conn, permsdir, functions, envtype, envid):
-  global dry_run # FIXME check scope of the global shit across python modules
+    global dry_run # FIXME check scope of the global shit across python modules
 
-  for function in functions:
-    logv("checking perms for function %s" % function)
-    functiondir = makepath(permsdir, function)
-    logv("functiondir: %s" % functiondir)
-  
+    for function in functions:
+        logv("checking perms for function %s" % function)
+        functiondir = makepath(permsdir, function)
+        logv("functiondir: %s" % functiondir)
+
     dirs = os.listdir(functiondir)
 
     for user in dirs:
-      if user == 'mysql_version':
-        continue
-      logv("user: %s" % user)
+        if user == 'mysql_version':
+            continue
+        logv("user: %s" % user)
 
-      if not os.path.isfile(makepath(permsdir,function,user,'global_perms')):
-        continue
-      else:
-        ensure_global_perms(conn, permsdir, function, user):
-
-      for db in os.listdir(makepath(permsdir, function, user, 'databases')):
-        if not os.path.isfile(makepath(permsdir, function, user, 'databases', db, 'perms')):
-          continue
+        if not os.path.isfile(makepath(permsdir,function,user,'global_perms')):
+            continue
         else:
-            if not check_db_perms(conn, permsdir, function, user, db):
-              if not dry_run:
-                apply_global_perms(conn, permsdir, function, user)
-              else:
-                logv("db perms not OK for %s on %s" % (user, db)
-        else:
-            logv("db perms OK for %s on %s" % (user, db))
+            if not ensure_global_perms(conn, permsdir, function, user):
+                if not dry_run:
+                    apply_global_perms(conn, permsdir, function, user)
+                else:
+                    logv("global perms not OK for %s" % (user))
+            else:
+                logv("global perms OK for %s" % (user))
 
-      # now is the time to handle per-table privs! good luck :)
+            for db in os.listdir(makepath(permsdir, function, user, 'databases')):
+                if not os.path.isfile(makepath(permsdir, function, user, 'databases', db, 'perms')):
+                    continue
+                else:
+                    if not check_db_perms(conn, permsdir, function, user, db):
+                        if not dry_run:
+                            apply_global_perms(conn, permsdir, function, user)
+                        else:
+                            logv("db perms not OK for %s on %s" % (user, db))
+                    else:
+                        logv("db perms OK for %s on %s" % (user, db))
+
+                 # now is the time to handle per-table privs! good luck :)
