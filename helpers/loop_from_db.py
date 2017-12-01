@@ -42,6 +42,8 @@ def check_global_users(conn, permsdir, functions, envtype, envid):
                 logv("dropping user %s@%s" % (user, sql_host))
                 drop_user(conn, user, sql_host)
 
+        logv("user %s@%s is fine." % ( user, sql_host ) )
+
 def check_db_privs(conn, permsdir, functions, envtype, envid):
 
     cur = conn.cursor()

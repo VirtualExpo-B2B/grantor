@@ -10,7 +10,7 @@ def apply_global_perms(conn, user, sql_host, global_perms_content):
     cur = conn.cursor()
     log("updating permissions for %s@%s" % ( user, sql_host ))
 
-    columns = [ 'Host', 'User' ]
+    columns = [ 'User', 'Host' ]
     privs = [ ]
     for perm in global_perms_content:
         columns.append(perm[0])

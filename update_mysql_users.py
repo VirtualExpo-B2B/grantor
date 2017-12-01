@@ -95,6 +95,8 @@ def main():
   logv("looping from db")
   loop_from_db(conn, args.permsdir, args.functions_list, envtype, envid)
 
+  cur.execute("FLUSH PRIVILEGES")
+
 
 if __name__ == "__main__":
   main()
