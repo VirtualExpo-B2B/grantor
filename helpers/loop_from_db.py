@@ -21,7 +21,7 @@ def check_global_users(conn, permsdir, functions, envtype, envid):
         sql_host = line[1]
 
         # reverse lookup
-        m = map_meta_from_host(sql_host)
+        host = map_meta_from_host(sql_host)
 
         # m = folx
 

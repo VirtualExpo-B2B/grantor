@@ -49,7 +49,7 @@ def makepath(*arg):
       if result == "":
           result += i
       else:
-          result += ( '/' + i )
+          result += ( '/' + str(i) )
   return result
 
 
