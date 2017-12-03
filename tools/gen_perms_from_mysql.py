@@ -161,12 +161,9 @@ def loop_users(d, conn):
   cur_u = conn.cursor()
 
   # we assume users from EVERY sources have the same permissions
-  cur.execute('SELECT DISTINCT User FROM mysql.user ORDER BY User')
+  cur.execute("SELECT DISTINCT User FROM mysql.user WHERE user not in ('') ORDER BY User")
   for user in cur.fetchall():
     user=user[0]
-    if user == '':
-      logv("warning: invalid empty username, skipping.")
-      continue
     logv("working on user %s" % user)
     du = d + '/' + user
     safe_mkdir(du)

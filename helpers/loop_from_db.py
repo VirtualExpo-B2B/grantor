@@ -14,7 +14,7 @@ def revoke_db_privs(conn, user, host, db):
 
 def check_global_users(conn, permsdir, functions, envtype, envid):
     cur = conn.cursor()
-    cur.execute('SELECT User, Host FROM mysql.user')
+    cur.execute("SELECT User, Host FROM mysql.user where user not in ('')")
 
     for line in cur.fetchall():
         user = line[0]

@@ -16,4 +16,13 @@ def apply_global_perms(conn, user, sql_host, global_perms_content):
         columns.append(perm[0])
         privs.append("'" + perm[1] + "'")
 
-    cur.execute("REPLACE INTO mysql.user ( %s ) VALUES ( '%s', '%s', %s )" %  ( ','.join(columns), user, sql_host, ','.join(privs) ) )
+    #FIXME :  quick shit in case, those mandatory columns are not présent
+    default_column=['ssl_cipher','x509_issuer','x509_subject']
+    for dc in default_column:
+        if dc not in columns:
+            columns.append(dc)
+            privs.append("''")
+
+
+    sql = "REPLACE INTO mysql.user ( %s ) VALUES ( '%s', '%s', %s )" %  ( ','.join(columns), user, sql_host, ','.join(privs) )
+    cur.execute( sql )

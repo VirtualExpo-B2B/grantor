@@ -16,7 +16,14 @@ def ensure_global_perms(conn, permsdir, function, user, envtype, envid):
         global_perms_content.append(line.split(': '))
 
     logv("checking perms for %s" % ( user ) )
-    meta_hostlist = quick_read(makepath(permsdir,function,user,'hosts',envtype)).split('\n')
+
+    #FIXME: shit to prevent an error where the host file is not present for the environment
+    try:
+        meta_hostlist = quick_read(makepath(permsdir,function,user,'hosts',envtype)).split('\n')
+    except:
+        logv("can't find this meta_host file %s" % makepath(permsdir,function,user,'hosts',envtype))
+        meta_hostlist=''
+
     if not meta_hostlist:
         logv("user %s does not exist on env %s" % (user, envtype))
     else:

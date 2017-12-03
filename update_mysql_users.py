@@ -75,6 +75,9 @@ def main():
 
   envs = { "1": "dev", "2": "preprod", "3": "prod", "6": "dev" }
   logv("hostname: %s" % hostname)
+  #FIXME - this is a shit modification for playing within my local mysql
+  hostname='velo1dblx01-1'
+
   s = re.search('ve[sl]o([0-9]).*', hostname)
   if s:
     envtype_n = s.group(1)
