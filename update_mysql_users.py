@@ -58,6 +58,7 @@ def main():
 
   args = parser.parse_args()
 
+  log("Running mysql tools grant application...")
   logv_set(args.verbose)
 
   for f in args.functions_list:
@@ -75,6 +76,7 @@ def main():
 
   envs = { "1": "dev", "2": "preprod", "3": "prod", "6": "dev" }
   logv("hostname: %s" % hostname)
+
   #FIXME - this is a shit modification for playing within my local mysql
   hostname='velo1dblx01-1'
 
@@ -89,16 +91,13 @@ def main():
   fmap = { "1": get_envid_dev, "2": get_envid_preprod, "3": get_envid_prod, "6": get_envid_staging }
   envid = fmap[envtype_n](hostname) or die("unable to determine envid")
 
-  # velo1dblx01 - FIXME
-  envid = "1"
-  envtype = "dev"
-
   logv("lopping from git")
   loop_from_git(conn, str(args.permsdir), args.functions_list, envtype, envid)
   logv("looping from db")
   loop_from_db(conn, args.permsdir, args.functions_list, envtype, envid)
 
   cur.execute("FLUSH PRIVILEGES")
+  log("Job done.")
 
 
 if __name__ == "__main__":

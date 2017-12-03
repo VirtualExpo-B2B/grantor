@@ -5,6 +5,16 @@
 from helpers.common import *
 from helpers.mappings import *
 
+# get one host for a user
+def get_first_host_for_user(conn, user):
+    sql=sql_get_user_host="SELECT DISTINCT Host FROM mysql.user where user = '%s' limit 1" % (user)
+    cur=conn.cursor()
+    cur.execute(sql)
+    r=cur.fetchall()
+    try:
+        return r[0][0]
+    except:
+        return False
 
 # vérifie si les global_pemrs d'un ursr (passée en param) son uptodate à celles trouvée en base
 # check whether global_perms for a specific user@sql_host are up-to-date against an array of permissions
@@ -19,7 +29,7 @@ def check_global_perms_ok(conn, user, sql_host, global_perms_content):
             # FIXME: assert 1 row?
             res = cur.fetchall()
             if len(res) == 0:
-              log("user %s@%s doesn't exist yet, triggering update" % ( user, sql_host ))
+              log("USER %s@%s doesn't exist yet, triggering update" % ( user, sql_host ))
               return False
             db_val = res[0][0]
             val = gperm[1]
@@ -65,22 +75,75 @@ def check_db_perms(conn, permsdir, function, user, db):
 def check_user_password(conn, user, sql_host, password):
     logv("checking password for user %s@%s" % ( user, sql_host ) )
     cur = conn.cursor()
-    cur.execute("select Password from mysql.user where user ='%s' AND host='%s'" % (user, sql_host))
+    cur.execute("select password from mysql.user where user ='%s' AND host='%s'" % (user, sql_host))
     r = cur.fetchall()
     if len(r) == 0:
       return False
     return r[0][0] == password
 
 def apply_user_password(conn, user, sql_host, password):
-    logv("updating password for user %s@%s" % ( user, sql_host ) )
+    log("UPDATING password for user %s@%s" % ( user, sql_host ) )
     cur = conn.cursor()
     cur.execute("UPDATE mysql.user SET password = '%s' WHERE user='%s' AND host='%s'" % ( password, user, sql_host ))
     cur.fetchall()
 
 
+#FIXME: IN PROGRESS
+def check_user_db_priv(conn, permsdir, function, user, host, db):
+
+    sql="select * from mysql.db where user='%s' and host='%s'" % (user,host)
+
+    local_db_priv=quick_read(permsdir + '/' + function + '/' + user + '/databases/' + db + '/perms').split('\n')
+
+    cur = conn.cursor()
+    cur.execute(sql)
+    db_privs=cur.fetchall()
+
+    return compare_array(local_db_priv, db_privs)
+
+
+
+
+
+#Application des permissions db pour un user
+def apply_user_db_priv(conn, permsdir, function, user, host, db):
+
+    log("UPDATING %s db permision for user %s@%s" % (db, user, host))
+    local_db_priv=quick_read(permsdir + '/' + function + '/' + user + '/databases/' + db + '/perms').split('\n')
+
+    columns = ['User', 'Host', 'Db']
+    privs = []
+    for perm in local_db_priv:
+
+        columns.append(perm.split(': ')[0])
+        privs.append("'" + perm.split(': ')[1] + "'")
+
+    sql = "REPLACE INTO mysql.db ( %s ) VALUES ( '%s', '%s', '%s', %s )" % (','.join(columns), user, host, db, ','.join(privs))
+
+    cur = conn.cursor()
+    cur.execute(sql)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    return True
+
+
 # check si le contenu des droits databases sur le filer est uptodate au droits database en db
-def check_user_for_database(envid, conn, user, user_local_dir):
-    sql_get_user_host="SELECT DISTINCT Host FROM mysql.tables_priv WHERE User = '%s' limit 1" % (user)
+def check_user_for_database(envid, conn, user, host, user_local_dir):
+    sql_get_user_host="SELECT DISTINCT Host FROM mysql.tables_priv WHERE User = '%s' and host='%s'" % (user,host)
     cur=conn.cursor()
     cur.execute(sql_get_user_host)
 
@@ -106,74 +169,10 @@ def check_user_for_database(envid, conn, user, user_local_dir):
             db=path.replace(user_local_dir + "databases/",'').replace('/tables','')
             droits_local.append((db,files[0],quick_read(path + "/" + files[0])))
 
-
-
-    print(priv)
-    print(droits_local)
     if not compare_array(priv, droits_local):
         return False
 
 
     return True
-
-
-## juste des tests --------------------------- TO REMOVE AFTER --------------------------------------
-def test_databasepriv():
-    print("test database")
-    from conn_hia import getconnection
-    conn = getconnection()
-
-    r=check_user_for_database("", conn, 'app_scenario_bo','/home/hiacine.ghaoui/workspace/perms/site/app_inovo/')
-    print(r)
-
-'''
-def test_globalperms():
-    #check_foo_global_perms('velo1dblx01-1', 'app_scenario_bo', )
-    from conn_hia import getconnection
-    conn =getconnection()
-
-    from helpers.common import quick_read
-    s=quick_read('/home/hiacine.ghaoui/workspace/perms/site/app_scenario_bo/global_perms')
-    p=s.strip().split("\n")
-
-    r=check_global_perms_for_user(conn, 'app_scenario_bo', p)
-
-    conn.close()
-
-    print(r)
-'''
-'''
-def test_hosts():
-    #check_foo_global_perms('velo1dblx01-1', 'app_scenario_bo', )
-    from conn_hia import getconnection
-    conn =getconnection()
-
-    from helpers.common import quick_read
-    s=quick_read('/home/hiacine.ghaoui/workspace/perms/site/app_scenario_bo/hosts/dev')
-    p=s.strip().split("\n")
-
-    r=check_foo_hosts('ndev1',conn, 'app_scenario_bo', p)
-
-    conn.close()
-    print("test_hosts %s" % (r))
-'''
-'''
-def test_password():
-    print("test password")
-    from conn_hia import getconnection
-    conn = getconnection()
-
-    s = quick_read('/home/hiacine.ghaoui/workspace/perms/site/app_scenario_bo/passwords/dev')
-    r=check_user_password("", conn, 'app_scenario_bo', s)
-    print(r)
-'''
-
-
-
-if __name__ == '__main__':
-    test_databasepriv()
-
-
-
 
 

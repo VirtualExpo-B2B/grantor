@@ -9,6 +9,26 @@ from helpers.update_user_priv import *
 
 dry_run = False
 
+# renvoi la liste des hosts du fichier host pour le user
+def get_local_user_hosts(permsdir, function, user, envtype,envid):
+
+    result=[]
+    # FIXME: shit to prevent an error where the host file is not present for the environment
+    try:
+        meta_hostlist = quick_read(makepath(permsdir, function, user, 'hosts', envtype)).split('\n')
+        for meta_host in meta_hostlist:
+            list = get_hosts_from_meta(envtype, envid, meta_host)
+            if len(list) > 1:
+                for item in list:
+                    result.append(item)
+            else:
+                result.append(list[0])
+    except:
+        logv("can't find this meta_host file %s" % makepath(permsdir, function, user, 'hosts', envtype))
+
+    return result
+
+
 def ensure_global_perms(conn, permsdir, function, user, envtype, envid):
     global_perms = quick_read(makepath(permsdir, function, user, 'global_perms'))
     global_perms_content = []
@@ -17,35 +37,30 @@ def ensure_global_perms(conn, permsdir, function, user, envtype, envid):
 
     logv("checking perms for %s" % ( user ) )
 
-    #FIXME: shit to prevent an error where the host file is not present for the environment
-    try:
-        meta_hostlist = quick_read(makepath(permsdir,function,user,'hosts',envtype)).split('\n')
-    except:
-        logv("can't find this meta_host file %s" % makepath(permsdir,function,user,'hosts',envtype))
-        meta_hostlist=''
+    sql_hostlist=get_local_user_hosts(permsdir, function, user, envtype,envid)
 
-    if not meta_hostlist:
+    if len(sql_hostlist)==0:
         logv("user %s does not exist on env %s" % (user, envtype))
     else:
-        for meta_host in meta_hostlist:
-            logv("in-meta: working on %s@%s" % ( user, meta_host ) )
-            sql_hostlist = get_hosts_from_meta(envtype, envid, meta_host)
-            for sql_host in sql_hostlist:
-                logv("in-sql: working on %s@%s" % ( user, sql_host ) )
-                if not check_global_perms_ok(conn, user, sql_host, global_perms_content):
-                    logv("%s@%s: fixing permissions" % ( user, sql_host ))
-                    apply_global_perms(conn, user, sql_host, global_perms_content)
-                else:
-                    logv("%s@%s: perms OK, congrats" % ( user, sql_host ) )
+        for host in sql_hostlist:
+            logv("in-sql: working on %s@%s" % ( user, host ) )
+            if not check_global_perms_ok(conn, user, host, global_perms_content):
+                logv("%s@%s: fixing permissions" % ( user, host ))
+                apply_global_perms(conn, user, host, global_perms_content)
+            else:
+                logv("%s@%s: perms OK, congrats" % ( user, host ) )
 
-                password = quick_read(makepath(permsdir, function, user, 'passwords', envtype))
-                if not check_user_password(conn, user, sql_host, password):
-                    apply_user_password(conn, user, sql_host, password)
+            password = quick_read(makepath(permsdir, function, user, 'passwords', envtype))
+            if not check_user_password(conn, user, host, password):
+                apply_user_password(conn, user, host, password)
 
-def ensure_db_perms(conn, permsdir, function, user, db):
-    True
+def ensure_db_perms(conn, permsdir, function, user, host, db):
+    logv('checking db %s permissions for user %s' % (db,user))
+    if not check_user_db_priv(conn, permsdir, function, user,host, db):
+        apply_user_db_priv(conn, permsdir, function, user, host, db)
 
 def ensure_table_perms(conn, permsdir, function, user, db):
+    logv('ensure_table_perms TODO')
     True
 
 
@@ -73,7 +88,9 @@ def loop_from_git(conn, permsdir, functions, envtype, envid):
             if os.path.isdir(makepath(permsdir, function, user, 'databases')):
                 for db in os.listdir(makepath(permsdir, function, user, 'databases')):
                     if os.path.isfile(makepath(permsdir, function, user, 'databases', db, 'perms')):
-                        ensure_db_perms(conn, permsdir, function, user, db)
+                        sql_hostlist = get_local_user_hosts(permsdir, function, user, envtype, envid)
+                        for host in sql_hostlist:
+                            ensure_db_perms(conn, permsdir, function, user, host, db)
 
                 # tables privs
                     if os.path.isdir(makepath(permsdir, function, user, db, "tables")):

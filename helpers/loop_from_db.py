@@ -3,11 +3,13 @@ from helpers.mappings import *
 from helpers.common import *
 
 def drop_user(conn, user, host):
+    log("DELETE du user %s@%s" % (user,host))
     cur = conn.cursor()
     cur.execute("DELETE FROM mysql.user WHERE User='%s' AND Host='%s'" % ( user, host ))
     cur.fetchall()
 
 def revoke_db_privs(conn, user, host, db):
+    log("REVOKE PRIV du user %s@%s" % (user, host))
     cur = conn.cursor()
     cur.execute("DELETE FROM mysql.db WHERE User='%s' AND Host='%s' AND Db='%s'" % ( user, host, db ))
     cur.fetchall()

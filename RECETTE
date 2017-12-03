@@ -1,0 +1,19 @@
+
+OK	:	Modification d'un mot de pass sur git
+OK	:	Modification des global perm	:	petit bug pas trop génant, le password est setté à vide, mais le check du password vient après et le set ok : par contre, il update deux lignes
+KO	:	supression du fichier global perm	:	Les globals perms existantes en base ne sont pas modifiées
+OK	:	supression d'un user
+OK	:	Ajout d'un user
+OK	:	Modification hosts
+	:	Modification droits sur tables
+	:	Modification des db perms sur un table
+	:	Ajout de db perm pour une table
+	:	Supression de db perm pour une table
+
+
+PROBLEMES
+
+un user qui existe sur le repo, n'est pas créé : exemple : app_dist_bo
+des db perm en plus sur la base ne sont pas supprimées, ce qui cause l'update des db perms du user
+
+

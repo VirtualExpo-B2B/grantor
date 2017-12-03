@@ -59,11 +59,7 @@ def makepath(*arg):
 def is_this_array_is_in_the_other(array_one, array_two):
 
     for val in array_one:
-        print(val)
         if val not in array_two:
-            print(array_one)
-            print(array_two)
-
             return False
 
     return True
@@ -83,13 +79,21 @@ def read_folder_to_array(envid, path):
 
 
 
+def drop_all_users(conn):
+    sql="SELECT user,host from mysql.user where user not in ('root', 'mysql.sys','user','')"
+    cur=conn.cursor()
+    cur.execute(sql)
+    users=cur.fetchall()
 
-
+    for user in users:
+        print("drop user s%@%s" % (user[0], user[1]))
+        cur.execute("DROP USER '%s'@'%s'" % (user[0], user[1]))
 
 
 
 #FIXME
 # TESTS -------------------------------------------------TO REMOVE-AFTER
 if __name__ == '__main__':
-
-    print()
+    conn=pymysql.connect(host="localhost", user="sexploit", passwd="183a0826ee028d809244926e2321234b")
+    drop_all_users(conn)
+    conn.close()
