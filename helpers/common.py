@@ -80,14 +80,16 @@ def read_folder_to_array(envid, path):
 
 
 def drop_all_users(conn):
-    sql="SELECT user,host from mysql.user where user not in ('root', 'mysql.sys','user','')"
+    sql="SELECT user,host from mysql.user where user not in ('root', 'mysql.sys','user','sexploit','')"
+
     cur=conn.cursor()
     cur.execute(sql)
     users=cur.fetchall()
 
     for user in users:
-        print("drop user s%@%s" % (user[0], user[1]))
-        cur.execute("DROP USER '%s'@'%s'" % (user[0], user[1]))
+        sql="drop user 's%'@'%s'" % (user[0], user[1])
+        print(sql)
+        cur.execute(sql)
 
 
 

@@ -9,7 +9,7 @@ def drop_user(conn, user, host):
     cur.fetchall()
 
 def revoke_db_privs(conn, user, host, db):
-    log("REVOKE PRIV du user %s@%s" % (user, host))
+    log("REVOKE PRIV du user %s@%s sur la db %s" % (user, host, db))
     cur = conn.cursor()
     cur.execute("DELETE FROM mysql.db WHERE User='%s' AND Host='%s' AND Db='%s'" % ( user, host, db ))
     cur.fetchall()

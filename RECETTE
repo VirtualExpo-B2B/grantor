@@ -5,15 +5,16 @@ KO	:	supression du fichier global perm	:	Les globals perms existantes en base ne
 OK	:	supression d'un user
 OK	:	Ajout d'un user
 OK	:	Modification hosts
-	:	Modification droits sur tables
-	:	Modification des db perms sur un table
-	:	Ajout de db perm pour une table
-	:	Supression de db perm pour une table
-
+OK	:	Modification droits sur tables
+OK	:	Modification des db perms sur un table
+OK	:	Ajout de db perm pour une table
+OK	:	Supression de db perm pour une table
+	:	Modification priv sur table
+	:	supression priv sur table
+	:	ajout priv sur table
 
 PROBLEMES
 
 un user qui existe sur le repo, n'est pas créé : exemple : app_dist_bo
-des db perm en plus sur la base ne sont pas supprimées, ce qui cause l'update des db perms du user
 
 

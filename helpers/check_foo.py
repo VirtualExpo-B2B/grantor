@@ -5,6 +5,10 @@
 from helpers.common import *
 from helpers.mappings import *
 
+# mysql -uroot -p$(cat /root/.mpwd) -B -N -e 'describe mysql.db' | grep _priv | awk '{ print $1 }'  | sed -e 's/^/"/' -e 's/$/", /' |  '\n'
+user_db_privs = [ "Select_priv", "Insert_priv", "Update_priv", "Delete_priv", "Create_priv", "Drop_priv", "Grant_priv", "References_priv", "Index_priv", "Alter_priv", "Create_tmp_table_priv", "Lock_tables_priv", "Create_view_priv", "Show_view_priv", "Create_routine_priv", "Alter_routine_priv", "Execute_priv", "Event_priv", "Trigger_priv" ]
+
+
 # get one host for a user
 def get_first_host_for_user(conn, user):
     sql=sql_get_user_host="SELECT DISTINCT Host FROM mysql.user where user = '%s' limit 1" % (user)
@@ -91,15 +95,18 @@ def apply_user_password(conn, user, sql_host, password):
 #FIXME: IN PROGRESS
 def check_user_db_priv(conn, permsdir, function, user, host, db):
 
-    sql="select * from mysql.db where user='%s' and host='%s'" % (user,host)
-
     local_db_priv=quick_read(permsdir + '/' + function + '/' + user + '/databases/' + db + '/perms').split('\n')
-
+    mysql_db_priv=[]
     cur = conn.cursor()
-    cur.execute(sql)
-    db_privs=cur.fetchall()
 
-    return compare_array(local_db_priv, db_privs)
+    for priv in user_db_privs:
+        cur.execute("SELECT %s FROM mysql.db WHERE User='%s' AND Host='%s' AND Db='%s'" % (priv, user, host, db))
+        res = cur.fetchall()
+        if len(res) > 0:
+            mysql_db_priv.append("%s: %s" % (priv, res[0][0]))
+
+
+    return compare_array(local_db_priv, mysql_db_priv)
 
 
 
@@ -122,21 +129,6 @@ def apply_user_db_priv(conn, permsdir, function, user, host, db):
 
     cur = conn.cursor()
     cur.execute(sql)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     return True
 
