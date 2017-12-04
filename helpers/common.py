@@ -65,6 +65,9 @@ def is_this_array_is_in_the_other(array_one, array_two):
     return True
 
 def compare_array(array_one, array_two):
+    if not len(array_one) == len(array_two):
+        return False
+
     if not is_this_array_is_in_the_other(array_one, array_two):
         return False
     if not is_this_array_is_in_the_other(array_two,array_one):

@@ -92,7 +92,6 @@ def apply_user_password(conn, user, sql_host, password):
     cur.fetchall()
 
 
-#FIXME: IN PROGRESS
 def check_user_db_priv(conn, permsdir, function, user, host, db):
 
     local_db_priv=quick_read(permsdir + '/' + function + '/' + user + '/databases/' + db + '/perms').split('\n')
@@ -107,6 +106,22 @@ def check_user_db_priv(conn, permsdir, function, user, host, db):
 
 
     return compare_array(local_db_priv, mysql_db_priv)
+
+
+def check_user_table_priv(conn, permsdir, function, user, host, db, table):
+    dir=makepath(permsdir, function, user, 'databases', db, "tables")
+
+    local_table_priv = quick_read(makepath(dir, table)).split(',')
+    sql="SELECT Table_priv FROM mysql.tables_priv WHERE db='%s' and Table_name='%s' and User = '%s' and Host='%s'" % (db, table, user, host)
+    cur = conn.cursor()
+    mysql_table_priv = []
+    cur.execute(sql)
+    r =cur.fetchall()
+    if cur.rowcount:
+        mysql_table_priv=r[0][0].split(',')
+
+    return compare_array( local_table_priv , mysql_table_priv)
+
 
 
 
@@ -130,6 +145,17 @@ def apply_user_db_priv(conn, permsdir, function, user, host, db):
     cur = conn.cursor()
     cur.execute(sql)
 
+    return True
+
+# Application des droits table pour un user@host
+def apply_user_table_priv(conn, permsdir, function, user, host, db, table):
+    log("UPDATING table %s.%s  permision for user %s@%s" % (db, table, user, host))
+    local_table_priv = quick_read(makepath(permsdir, function, user, 'databases', db, "tables",table))
+
+
+
+    cur=conn.cursor()
+    cur.execute("REPLACE INTO mysql.tables_priv (user, host, db, Table_name, Table_priv) VALUES ('%s','%s','%s','%s', '%s');" % (user, host, db, table, local_table_priv))
     return True
 
 

@@ -59,10 +59,10 @@ def ensure_db_perms(conn, permsdir, function, user, host, db):
     if not check_user_db_priv(conn, permsdir, function, user,host, db):
         apply_user_db_priv(conn, permsdir, function, user, host, db)
 
-def ensure_table_perms(conn, permsdir, function, user, db):
-    logv('ensure_table_perms TODO')
-    True
-
+def ensure_user_table_perms(conn, permsdir, function, user, host, db, table):
+    logv('checking tables %s.%s permissions for user %s' % (db,table, user))
+    if not check_user_table_priv(conn, permsdir, function, user, host, db, table):
+        apply_user_table_priv(conn, permsdir, function, user, host, db, table)
 
 
 def loop_from_git(conn, permsdir, functions, envtype, envid):
@@ -93,7 +93,9 @@ def loop_from_git(conn, permsdir, functions, envtype, envid):
                             ensure_db_perms(conn, permsdir, function, user, host, db)
 
                 # tables privs
-                    if os.path.isdir(makepath(permsdir, function, user, db, "tables")):
-                        tables = os.listdir(makepath(permsdir, function, user, db, "tables"))
+                    if os.path.isdir(makepath(permsdir, function, user, 'databases', db, "tables")):
+                        tables = os.listdir(makepath(permsdir, function, user, 'databases', db, "tables"))
                         for table in tables:
-                            ensure_table_perms(conn, permsdir, function, user, db, table)
+                            sql_hostlist = get_local_user_hosts(permsdir, function, user, envtype, envid)
+                            for host in sql_hostlist:
+                                ensure_user_table_perms(conn, permsdir, function, user, host, db, table)
