@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-#coding: utf8
+#enccoding: utf8
 
 import argparse
 import os, sys
 from helpers.common import *
-from helpers.check_foo import *
-from helpers.update_user_priv import *
+from helpers.check_privs import *
+from helpers.update_privs import *
+from helpers.check_version import *
 
 dry_run = False
 
@@ -69,6 +70,9 @@ def ensure_table_perms(conn, permsdir, function, user, host, db, table):
 
 def loop_from_git(conn, permsdir, functions, envtype, envid):
     global dry_run # FIXME check scope of the global shit across python modules
+
+    if check_mysql_version(conn, makepath(permsdir, 'mysql_version')) == False:
+      log("WARNING: MySQL versions do not match")
 
     for function in functions:
         logv("checking perms for function %s" % function)
