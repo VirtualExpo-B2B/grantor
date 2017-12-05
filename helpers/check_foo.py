@@ -11,10 +11,10 @@ user_db_privs = [ "Select_priv", "Insert_priv", "Update_priv", "Delete_priv", "C
 
 # get one host for a user
 def get_first_host_for_user(conn, user):
-    sql=sql_get_user_host="SELECT DISTINCT Host FROM mysql.user where user = '%s' limit 1" % (user)
-    cur=conn.cursor()
+    sql = "SELECT DISTINCT Host FROM mysql.user WHERE User = '%s' LIMIT 1" % (user)
+    cur = conn.cursor()
     cur.execute(sql)
-    r=cur.fetchall()
+    r = cur.fetchall()
     try:
         return r[0][0]
     except:
@@ -46,35 +46,6 @@ def check_global_perms_ok(conn, user, sql_host, global_perms_content):
     return uptodate
 
 
-## check if host in local is the same as the hos in db for a user
-def check_foo_hosts(envid, conn, user, hosts):
-    cur=conn.cursor()
-
-    filer_hosts_list=['',]
-    filer_hosts_list.remove('')
-    db_hosts=['',]
-    db_hosts.remove('')
-
-    for h in hosts:
-        arr=get_hosts_from_meta("","",h)# get array of environment ip
-        for h2 in arr:
-            filer_hosts_list.append(h2) # ajoute les ip trouvées dans le repo local
-
-    cur.execute("SELECT Host FROM mysql.user WHERE User='%s'" % (user))
-    for h in cur.fetchall():
-        db_hosts.append(h[0])
-
-
-
-    if not compare_array(db_hosts, filer_hosts_list):
-        return False
-
-    return True
-
-def check_db_perms(conn, permsdir, function, user, db):
-    True
-
-
 # check if password in local is the same as the password in db
 def check_user_password(conn, user, sql_host, password):
     logv("checking password for user %s@%s" % ( user, sql_host ) )
@@ -104,30 +75,8 @@ def check_user_db_priv(conn, permsdir, function, user, host, db):
         if len(res) > 0:
             mysql_db_priv.append("%s: %s" % (priv, res[0][0]))
 
-
     return compare_array(local_db_priv, mysql_db_priv)
 
-
-def check_user_table_priv(conn, permsdir, function, user, host, db, table):
-    dir=makepath(permsdir, function, user, 'databases', db, "tables")
-
-    local_table_priv = quick_read(makepath(dir, table)).split(',')
-    sql="SELECT Table_priv FROM mysql.tables_priv WHERE db='%s' and Table_name='%s' and User = '%s' and Host='%s'" % (db, table, user, host)
-    cur = conn.cursor()
-    mysql_table_priv = []
-    cur.execute(sql)
-    r =cur.fetchall()
-    if cur.rowcount:
-        mysql_table_priv=r[0][0].split(',')
-
-    return compare_array( local_table_priv , mysql_table_priv)
-
-
-
-
-
-
-#Application des permissions db pour un user
 def apply_user_db_priv(conn, permsdir, function, user, host, db):
 
     log("UPDATING %s db permision for user %s@%s" % (db, user, host))
@@ -147,50 +96,33 @@ def apply_user_db_priv(conn, permsdir, function, user, host, db):
 
     return True
 
-# Application des droits table pour un user@host
-def apply_user_table_priv(conn, permsdir, function, user, host, db, table):
-    log("UPDATING Tables_priv on %s.%s  permision for user %s@%s" % (db, table, user, host))
-    local_table_priv = quick_read(makepath(permsdir, function, user, 'databases', db, "tables",table))
 
+def check_user_table_priv(conn, permsdir, function, user, host, db, table):
+    path = makepath(permsdir, function, user, 'databases', db, 'tables', table)
 
+    sql = "SELECT Table_priv FROM mysql.tables_priv WHERE User = '%s' AND Host = '%s' AND Db = '%s' AND Table_name='%s'" % ( user, host, db, table )
 
-    cur=conn.cursor()
-    cur.execute("REPLACE INTO mysql.tables_priv (user, host, db, Table_name, Table_priv, Grantor) VALUES ('%s','%s','%s','%s', '%s', 'mysql grant tool');" % (user, host, db, table, local_table_priv))
-    return True
+    cur = conn.cursor()
+    cur.execute(sql)
+    res = cur.fetchall()
 
-
-# check si le contenu des droits databases sur le filer est uptodate au droits database en db
-def check_user_for_database(envid, conn, user, host, user_local_dir):
-    sql_get_user_host="SELECT DISTINCT Host FROM mysql.tables_priv WHERE User = '%s' and host='%s'" % (user,host)
-    cur=conn.cursor()
-    cur.execute(sql_get_user_host)
-
-    r=cur.fetchall()
-
-    host=r[0][0]
-
-    sql_get_user_priv_for_host="SELECT Db,Table_name, Table_priv FROM mysql.tables_priv WHERE User = '%s' AND Host = '%s'" % (user, host)
-
-    cur.execute(sql_get_user_priv_for_host)
-
-    priv = cur.fetchall()
-
-
-    droits_local=['',]
-    droits_local.remove('')
-
-    p = read_folder_to_array('', user_local_dir)
-    for path, subdirs, files in p:
-
-        if 'databases' in path.split('/') and 'tables' in path.split('/'):
-
-            db=path.replace(user_local_dir + "databases/",'').replace('/tables','')
-            droits_local.append((db,files[0],quick_read(path + "/" + files[0])))
-
-    if not compare_array(priv, droits_local):
+    if len(res) == 0:
         return False
 
+    # split the SQL set into an array
+    remote_privs = res[0][0].split(',')
+    target_privs = quick_read(path).split(',')
+
+    return target_privs.sort() == remote_privs.sort()
+
+
+def apply_user_table_priv(conn, permsdir, function, user, host, db, table):
+    cur = conn.cursor()
+
+    target_privs = quick_read(makepath(permsdir, function, user, 'databases', db, 'tables', table))
+    columns = [ 'Host', 'Db', 'User', 'Table_name', 'Grantor', 'Table_priv', 'Column_priv' ]
+
+    sql = "REPLACE INTO mysql.tables_priv ( %s ) VALUES ( '%s', '%s', '%s', '%s', '%s', '%s', '' )" % ( ','.join(columns), host, db, user, table, 'root@heaven', target_privs)
+    cur.execute(sql)
 
     return True
-
-

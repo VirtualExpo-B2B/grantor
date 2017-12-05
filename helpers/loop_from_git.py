@@ -9,7 +9,7 @@ from helpers.update_user_priv import *
 
 dry_run = False
 
-# renvoi la liste des hosts du fichier host pour le user
+# returns an array of SQL hosts for a {function,user,envtype,envid} "couple"
 def get_local_user_hosts(permsdir, function, user, envtype,envid):
 
     result=[]
@@ -24,7 +24,7 @@ def get_local_user_hosts(permsdir, function, user, envtype,envid):
             else:
                 result.append(list[0])
     except:
-        logv("can't find this meta_host file %s" % makepath(permsdir, function, user, 'hosts', envtype))
+        logv("can't find the meta_host file %s" % makepath(permsdir, function, user, 'hosts', envtype))
 
     return result
 
@@ -37,9 +37,9 @@ def ensure_global_perms(conn, permsdir, function, user, envtype, envid):
 
     logv("checking perms for %s" % ( user ) )
 
-    sql_hostlist=get_local_user_hosts(permsdir, function, user, envtype,envid)
+    sql_hostlist = get_local_user_hosts(permsdir, function, user, envtype, envid)
 
-    if len(sql_hostlist)==0:
+    if len(sql_hostlist) == 0:
         logv("user %s does not exist on env %s" % (user, envtype))
     else:
         for host in sql_hostlist:
@@ -55,13 +55,15 @@ def ensure_global_perms(conn, permsdir, function, user, envtype, envid):
                 apply_user_password(conn, user, host, password)
 
 def ensure_db_perms(conn, permsdir, function, user, host, db):
-    logv('checking db %s permissions for user %s' % (db,user))
-    if not check_user_db_priv(conn, permsdir, function, user,host, db):
+    logv('checking db %s permissions for user %s@%s' % (db, user, host))
+    if not check_user_db_priv(conn, permsdir, function, user, host, db):
+        logv('-> updating db privs for %s@%s on %s' % ( user, host, db ))
         apply_user_db_priv(conn, permsdir, function, user, host, db)
 
-def ensure_user_table_perms(conn, permsdir, function, user, host, db, table):
-    logv('checking tables %s.%s permissions for user %s' % (db,table, user))
+def ensure_table_perms(conn, permsdir, function, user, host, db, table):
+    logv('checking table %s.%s permissions for user %s@%s' % ( db, table, user, host ))
     if not check_user_table_priv(conn, permsdir, function, user, host, db, table):
+        logv('-> updating table %s.%s permissions for user %s@%s' % ( db, table, user, host ))
         apply_user_table_priv(conn, permsdir, function, user, host, db, table)
 
 
@@ -84,18 +86,18 @@ def loop_from_git(conn, permsdir, functions, envtype, envid):
             if os.path.isfile(makepath(permsdir,function,user,'global_perms')):
                 ensure_global_perms(conn, permsdir, function, user, envtype, envid)
 
+            sql_hostlist = get_local_user_hosts(permsdir, function, user, envtype, envid)
+
             # db privs
             if os.path.isdir(makepath(permsdir, function, user, 'databases')):
                 for db in os.listdir(makepath(permsdir, function, user, 'databases')):
                     if os.path.isfile(makepath(permsdir, function, user, 'databases', db, 'perms')):
-                        sql_hostlist = get_local_user_hosts(permsdir, function, user, envtype, envid)
                         for host in sql_hostlist:
                             ensure_db_perms(conn, permsdir, function, user, host, db)
 
                 # tables privs
-                    if os.path.isdir(makepath(permsdir, function, user, 'databases', db, "tables")):
-                        tables = os.listdir(makepath(permsdir, function, user, 'databases', db, "tables"))
+                    if os.path.isdir(makepath(permsdir, function, user, 'databases', db, 'tables')):
+                        tables = os.listdir(makepath(permsdir, function, user, 'databases', db, 'tables'))
                         for table in tables:
-                            sql_hostlist = get_local_user_hosts(permsdir, function, user, envtype, envid)
                             for host in sql_hostlist:
-                                ensure_user_table_perms(conn, permsdir, function, user, host, db, table)
+                                ensure_table_perms(conn, permsdir, function, user, host, db, table)
