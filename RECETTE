@@ -9,9 +9,9 @@ OK	:	Modification droits sur tables
 OK	:	Modification des db perms sur un table
 OK	:	Ajout de db perm pour une table
 OK	:	Supression de db perm pour une table
-	:	Modification priv sur table
-	:	supression priv sur table
-	:	ajout priv sur table
+OK	:	Modification priv sur table
+OK	:	supression priv sur table
+OK	:	ajout priv sur table
 
 PROBLEMES
 

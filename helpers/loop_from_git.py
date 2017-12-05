@@ -57,7 +57,7 @@ def ensure_global_perms(conn, permsdir, function, user, envtype, envid):
 def ensure_db_perms(conn, permsdir, function, user, host, db):
     logv('checking db %s permissions for user %s@%s' % (db, user, host))
     if not check_user_db_priv(conn, permsdir, function, user, host, db):
-        logv('updating db privs for %s@%s on %s' % ( user, host, db ))
+        logv('-> updating db privs for %s@%s on %s' % ( user, host, db ))
         apply_user_db_priv(conn, permsdir, function, user, host, db)
 
 def ensure_table_perms(conn, permsdir, function, user, host, db, table):

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 info.hia
 __pycache__
 venv
@@ -5,3 +6,7 @@ venv
 perms
 *.pyc
 *.sw?
+=======
+.idea
+perms
+>>>>>>> cab2e3b3e5cf310f057fc2dffc8242ec065eff39

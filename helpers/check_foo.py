@@ -63,7 +63,6 @@ def apply_user_password(conn, user, sql_host, password):
     cur.fetchall()
 
 
-#FIXME: IN PROGRESS
 def check_user_db_priv(conn, permsdir, function, user, host, db):
 
     local_db_priv=quick_read(permsdir + '/' + function + '/' + user + '/databases/' + db + '/perms').split('\n')
@@ -78,8 +77,6 @@ def check_user_db_priv(conn, permsdir, function, user, host, db):
 
     return compare_array(local_db_priv, mysql_db_priv)
 
-
-# updates permissions for a given user@host couple on db.*
 def apply_user_db_priv(conn, permsdir, function, user, host, db):
 
     log("UPDATING %s db permision for user %s@%s" % (db, user, host))
@@ -99,11 +96,11 @@ def apply_user_db_priv(conn, permsdir, function, user, host, db):
 
     return True
 
+
 def check_user_table_priv(conn, permsdir, function, user, host, db, table):
     path = makepath(permsdir, function, user, 'databases', db, 'tables', table)
-    target_privs = quick_read(path).split(',').sort()
 
-    sql = "SELECT Table_priv FROM mysql.tables_priv WHERE User = '%s' AND Host = '%s' AND Db = '%s'" % ( user, host, db )
+    sql = "SELECT Table_priv FROM mysql.tables_priv WHERE User = '%s' AND Host = '%s' AND Db = '%s' AND Table_name='%s'" % ( user, host, db, table )
 
     cur = conn.cursor()
     cur.execute(sql)
@@ -113,13 +110,19 @@ def check_user_table_priv(conn, permsdir, function, user, host, db, table):
         return False
 
     # split the SQL set into an array
-    remote_privs = res[0][0].split(',').sort()
+    remote_privs = res[0][0].split(',')
+    target_privs = quick_read(path).split(',')
 
-    return target_privs == remote_privs
+    return target_privs.sort() == remote_privs.sort()
+
 
 def apply_user_table_priv(conn, permsdir, function, user, host, db, table):
     cur = conn.cursor()
+
     target_privs = quick_read(makepath(permsdir, function, user, 'databases', db, 'tables', table))
     columns = [ 'Host', 'Db', 'User', 'Table_name', 'Grantor', 'Table_priv', 'Column_priv' ]
-    cur.execute("REPLACE INTO mysql.tables_priv ( %s ) VALUES ( '%s', '%s', '%s', '%s', '%s', '' )" % ( ','.join(columns), host, db, user, table, 'root@heaven', target_privs))
-    cur.fetchall()
+
+    sql = "REPLACE INTO mysql.tables_priv ( %s ) VALUES ( '%s', '%s', '%s', '%s', '%s', '%s', '' )" % ( ','.join(columns), host, db, user, table, 'root@heaven', target_privs)
+    cur.execute(sql)
+
+    return True
