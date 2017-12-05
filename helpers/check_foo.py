@@ -149,13 +149,13 @@ def apply_user_db_priv(conn, permsdir, function, user, host, db):
 
 # Application des droits table pour un user@host
 def apply_user_table_priv(conn, permsdir, function, user, host, db, table):
-    log("UPDATING table %s.%s  permision for user %s@%s" % (db, table, user, host))
+    log("UPDATING Tables_priv on %s.%s  permision for user %s@%s" % (db, table, user, host))
     local_table_priv = quick_read(makepath(permsdir, function, user, 'databases', db, "tables",table))
 
 
 
     cur=conn.cursor()
-    cur.execute("REPLACE INTO mysql.tables_priv (user, host, db, Table_name, Table_priv) VALUES ('%s','%s','%s','%s', '%s');" % (user, host, db, table, local_table_priv))
+    cur.execute("REPLACE INTO mysql.tables_priv (user, host, db, Table_name, Table_priv, Grantor) VALUES ('%s','%s','%s','%s', '%s', 'mysql grant tool');" % (user, host, db, table, local_table_priv))
     return True
 
 
