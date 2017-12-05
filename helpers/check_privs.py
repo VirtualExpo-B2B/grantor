@@ -28,18 +28,18 @@ def check_global_perms_ok(conn, user, sql_host, global_perms_content):
 
     for gperm in global_perms_content:
         if len(gperm) > 0:
-            logv("checking priv %s for user %s@%s" % ( gperm[0], user, sql_host ) )
+            logv("checking global priv %s for user %s@%s" % ( gperm[0], user, sql_host ) )
             cur.execute("SELECT %s FROM mysql.user WHERE User='%s' AND Host='%s'" % (gperm[0], user, sql_host))
             # FIXME: assert 1 row?
             res = cur.fetchall()
             if len(res) == 0:
-              log("USER %s@%s doesn't exist yet, triggering update" % ( user, sql_host ))
+              log("user %s@%s doesn't exist yet, triggering update" % ( user, sql_host ))
               return False
             db_val = res[0][0]
             val = gperm[1]
             uptodate = (val == db_val)
             if uptodate == False:
-                logv("user %s@%s: global permissions are not up-to-date" % (user, sql_host))
+                logv("user %s@%s: global permissions are NOT up-to-date" % (user, sql_host))
                 return uptodate
 
     logv("user %s@%s: global permissions are up-to-date" % (user, sql_host))
@@ -57,7 +57,7 @@ def check_user_password(conn, user, sql_host, password):
     return r[0][0] == password
 
 def apply_user_password(conn, user, sql_host, password):
-    log("UPDATING password for user %s@%s" % ( user, sql_host ) )
+    log("updating password for %s@%s" % ( user, sql_host ) )
     cur = conn.cursor()
     cur.execute("UPDATE mysql.user SET password = '%s' WHERE user='%s' AND host='%s'" % ( password, user, sql_host ))
     cur.fetchall()
@@ -79,7 +79,7 @@ def check_user_db_priv(conn, permsdir, function, user, host, db):
 
 def apply_user_db_priv(conn, permsdir, function, user, host, db):
 
-    log("UPDATING %s db permision for user %s@%s" % (db, user, host))
+    log("updating database %s permissions for %s@%s" % (db, user, host))
     local_db_priv=quick_read(permsdir + '/' + function + '/' + user + '/databases/' + db + '/perms').split('\n')
 
     columns = ['User', 'Host', 'Db']
@@ -113,7 +113,14 @@ def check_user_table_priv(conn, permsdir, function, user, host, db, table):
     remote_privs = res[0][0].split(',')
     target_privs = quick_read(path).split(',')
 
-    return target_privs.sort() == remote_privs.sort()
+    # no target privs - nothing to update.
+    if target_privs == False:
+      return True
+     
+    remote_privs.sort()
+    target_privs.sort()
+
+    return target_privs == remote_privs
 
 
 def apply_user_table_priv(conn, permsdir, function, user, host, db, table):
