@@ -14,9 +14,15 @@ def revoke_db_privs(conn, user, host, db):
     cur.execute("DELETE FROM mysql.db WHERE User='%s' AND Host='%s' AND Db='%s'" % ( user, host, db ))
     cur.fetchall()
 
-def check_global_users(conn, permsdir, functions, envtype, envid):
+def check_global_users(conn, permsdir, functions, envtype, envid, app_user):
     cur = conn.cursor()
-    cur.execute("SELECT User, Host FROM mysql.user where user not in ('')")
+
+    if len(app_user) > 0:
+        sql = "SELECT User, Host FROM mysql.user where user = '%s'" % (app_user)
+    else:
+        sql = "SELECT User, Host FROM mysql.user where user not in ('')"
+
+    cur.execute(sql)
 
     for line in cur.fetchall():
         user = line[0]
@@ -43,10 +49,15 @@ def check_global_users(conn, permsdir, functions, envtype, envid):
 
         logv("user %s@%s is fine." % ( user, sql_host ) )
 
-def check_db_privs(conn, permsdir, functions, envtype, envid):
+def check_db_privs(conn, permsdir, functions, envtype, envid, app_user):
 
     cur = conn.cursor()
-    cur.execute("SELECT * FROM mysql.db")
+    if len(app_user) > 0:
+        sql="SELECT * FROM mysql.db WHERE User='%s'" % (app_user)
+    else:
+        sql="SELECT * FROM mysql.db"
+
+    cur.execute(sql)
 
     for row in cur.fetchall():
         host = row[0]
@@ -73,9 +84,15 @@ def delete_table_priv(conn, host, db, user, table_name):
     cur.fetchall()
 
 # iterates over each row of mysql.tables_priv
-def check_tables_privs(conn, permsdir, functions, envtype, envid):
+def check_tables_privs(conn, permsdir, functions, envtype, envid, app_user):
     cur = conn.cursor()
-    cur.execute("SELECT Host, Db, User, Table_name FROM mysql.tables_priv")
+
+    if len(app_user)>0:
+        sql = "SELECT Host, Db, User, Table_name FROM mysql.tables_priv WHERE User='%s'" % (app_user)
+    else:
+        sql = "SELECT Host, Db, User, Table_name FROM mysql.tables_priv"
+
+    cur.execute(sql)
 
     for host, db, user, table_name in cur.fetchall():
         logv("checking table permissions for %s@%s on db %s.%s" % ( user, host, db, table_name ) )
@@ -87,10 +104,10 @@ def check_tables_privs(conn, permsdir, functions, envtype, envid):
         if found == False:
             delete_table_priv(conn, host, db, user, table_name)
 
-def loop_from_db(conn, permsdir, functions, envtype, envid):
+def loop_from_db(conn, permsdir, functions, envtype, envid, app_user):
     logv('loop_from_db: working on global privs')
-    check_global_users(conn, permsdir, functions, envtype, envid)
+    check_global_users(conn, permsdir, functions, envtype, envid, app_user)
     logv('loop_from_db: working on db privs')
-    check_db_privs(conn, permsdir, functions, envtype, envid)
+    check_db_privs(conn, permsdir, functions, envtype, envid, app_user)
     logv('loop_from_db: working on tables privs')
-    check_tables_privs(conn, permsdir, functions, envtype, envid)
+    check_tables_privs(conn, permsdir, functions, envtype, envid, app_user)

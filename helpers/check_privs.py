@@ -124,6 +124,8 @@ def check_user_table_priv(conn, permsdir, function, user, host, db, table):
 
 
 def apply_user_table_priv(conn, permsdir, function, user, host, db, table):
+
+    log("UPDATING Table_priv on %s.%s for user %s@%s" % (db, table, user, host))
     cur = conn.cursor()
 
     target_privs = quick_read(makepath(permsdir, function, user, 'databases', db, 'tables', table))

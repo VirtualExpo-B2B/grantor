@@ -68,7 +68,7 @@ def ensure_table_perms(conn, permsdir, function, user, host, db, table):
         apply_user_table_priv(conn, permsdir, function, user, host, db, table)
 
 
-def loop_from_git(conn, permsdir, functions, envtype, envid):
+def loop_from_git(conn, permsdir, functions, envtype, envid, app_user):
     global dry_run # FIXME check scope of the global shit across python modules
 
     for function in functions:
@@ -87,6 +87,9 @@ def loop_from_git(conn, permsdir, functions, envtype, envid):
             if user == 'mysql_version':
                 continue
 
+            if len(app_user)>0:
+                if not user==app_user:
+                    continue
             logv("working on user %s" % ( user ) )
 
             print("  working on: % 17s [%i/%i] [%i%%]\r" % ( user, i, len(dirs), i * 100 / len(dirs) ), end = '')
