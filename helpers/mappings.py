@@ -72,7 +72,3 @@ def get_meta_from_host(host):
     return map[host]
   else:
     return False
-
-if __name__ == '__main__':
-      r=get_hosts_from_meta("","ndev1","localhost")
-      print(r)

@@ -8,13 +8,6 @@ from helpers.common import *
 from helpers.loop_from_git import *
 from helpers.loop_from_db import *
 
-# 0. check version?
-# 1. loop from git  ( conn, permsdir, list[functions], envtype, envid )
-# 2. loop from db   ( conn, permsdir, list[functions], envtype, envid )
-
-
-
-# FIXME: those routines need to support every database servers
 
 def get_envid_prod(hostname):
   return "prod"
@@ -48,9 +41,9 @@ def get_envid_staging(hostname):
     return False
 
 def main():
-  parser = argparse.ArgumentParser(prog='update_mysql_users.py', description='Applies permissions to a MySQL instance')
-  parser.add_argument('-s', '--server', nargs=1, help='address of the MySQL server', required=True, type=str)
-  parser.add_argument('-u', '--user', nargs=1, default='root', help='username to authenticate', type=str)
+  parser = argparse.ArgumentParser(prog='MySQL Grantor', description='Applies permissions to a MySQL instance')
+  parser.add_argument('-s', '--server', nargs=1, help='address or hostname of the MySQL server', required=True, type=str)
+  parser.add_argument('-u', '--user', nargs=1, default='root', help='username to authenticate with', type=str)
   parser.add_argument('-p', '--passwd', nargs=1, help='password of the user', required=True, type=str)
   parser.add_argument('-P', '--permsdir', required=True, default='../perms', help='path to the perms directory', type=str)
   parser.add_argument('-v', '--verbose', default=False, action='store_true', help='tell me whattya doin')
@@ -58,27 +51,27 @@ def main():
 
   args = parser.parse_args()
 
-  log("Running mysql tools grant application...")
+  log("MySQL Grantor starting...")
   logv_set(args.verbose)
 
   for f in args.functions_list:
     if not os.path.isdir(args.permsdir + '/' + f):
-      die("function %s doesn't exist in %s\n" % (args.permsdir, f))
+      die("function %s doesn't exist in %s" % (args.permsdir, f))
 
-  logv("connecting to %s (user: %s)\n" % (args.server[0], args.user[0]))
+  logv("connecting to %s (user: %s)... " % (args.server[0], args.user[0]))
   conn = pymysql.connect( host=args.server[0], user=args.user[0], passwd=args.passwd[0] )
   cur = conn.cursor()
-  cur.execute("show variables like 'hostname'")
+  cur.execute("SHOW VARIABLES LIKE 'hostname'")
   res = cur.fetchall()
   hostname = res[0][1]
 
-  logv("connected!")
+  logv("connected!\n")
 
   envs = { "1": "dev", "2": "preprod", "3": "prod", "6": "dev" }
   logv("hostname: %s" % hostname)
 
   #FIXME - this is a shit modification for playing within my local mysql
-  hostname='velo1dblx01-1'
+  hostname='velo1dblx01'
 
   s = re.search('ve[sl]o([0-9]).*', hostname)
   if s:
@@ -91,12 +84,16 @@ def main():
   fmap = { "1": get_envid_dev, "2": get_envid_preprod, "3": get_envid_prod, "6": get_envid_staging }
   envid = fmap[envtype_n](hostname) or die("unable to determine envid")
 
-  logv("lopping from git")
+  log("* step 1 - applying permissions from the repository")
   loop_from_git(conn, str(args.permsdir), args.functions_list, envtype, envid)
-  logv("looping from db")
+  log("* step 2 - removing extra permissions from the server")
   loop_from_db(conn, args.permsdir, args.functions_list, envtype, envid)
 
+  log("flushing privileges...")
   cur.execute("FLUSH PRIVILEGES")
+
+  conn.close()
+
   log("Job done.")
 
 

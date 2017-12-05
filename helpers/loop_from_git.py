@@ -6,7 +6,7 @@ import os, sys
 from helpers.common import *
 from helpers.check_privs import *
 from helpers.update_privs import *
-from helpers.check_version import *
+from helpers.check_mysql_version import *
 
 dry_run = False
 
@@ -71,20 +71,26 @@ def ensure_table_perms(conn, permsdir, function, user, host, db, table):
 def loop_from_git(conn, permsdir, functions, envtype, envid):
     global dry_run # FIXME check scope of the global shit across python modules
 
-    if check_mysql_version(conn, makepath(permsdir, 'mysql_version')) == False:
-      log("WARNING: MySQL versions do not match")
-
     for function in functions:
-        logv("checking perms for function %s" % function)
+        logv("entering function %s" % function)
         functiondir = makepath(permsdir, function)
-        logv("functiondir: %s" % functiondir)
-
         dirs = os.listdir(functiondir)
 
+        logv("checking MySQL version....")
+        if check_mysql_version(conn, makepath(permsdir, function, "mysql_version")) == False:
+            log("WARNING: target MySQL version mismatches")
+        else:
+            logv("MySQL version OK")
+
+        i = 0
         for user in dirs:
-            logv("(function: %s) working on user %s" % ( function, user ) )
             if user == 'mysql_version':
                 continue
+
+            logv("working on user %s" % ( user ) )
+
+            print("  working on: % 17s [%i/%i] [%i%%]\r" % ( user, i, len(dirs), i * 100 / len(dirs) ), end = '')
+            i = i + 1  # come on, there's no i++ ?
 
             # global privs
             if os.path.isfile(makepath(permsdir,function,user,'global_perms')):
@@ -105,3 +111,5 @@ def loop_from_git(conn, permsdir, functions, envtype, envid):
                         for table in tables:
                             for host in sql_hostlist:
                                 ensure_table_perms(conn, permsdir, function, user, host, db, table)
+
+    print('\r', end='')

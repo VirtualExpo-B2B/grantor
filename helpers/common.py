@@ -37,10 +37,10 @@ def logv_set(flag):
 def logv(str):
     global g_verbose
     if g_verbose:
-        print('[' + time.strftime("%c") + '] ' + str + "\n")
+        print('[' + time.strftime("%c") + '] ' + str)
 
 def log(str):
-    print('[' + time.strftime("%c") + '] ' + str + "\n")
+    print('[' + time.strftime("%c") + '] ' + str)
 
 # concatenate all its arguments, adding '/' between elements
 def makepath(*arg):
