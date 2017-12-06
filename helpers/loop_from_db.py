@@ -5,19 +5,23 @@ import os
 from helpers.mappings import *
 from helpers.common import *
 
-def drop_user(conn, user, host):
+def drop_user(conn, user, host, noop):
     log("removing user %s@%s" % (user,host))
-    cur = conn.cursor()
-    cur.execute("DELETE FROM mysql.user WHERE User='%s' AND Host='%s'" % ( user, host ))
-    cur.fetchall()
 
-def revoke_db_privs(conn, user, host, db):
+    if not noop:
+        cur = conn.cursor()
+        cur.execute("DELETE FROM mysql.user WHERE User='%s' AND Host='%s'" % ( user, host ))
+        cur.fetchall()
+
+def revoke_db_privs(conn, user, host, db, noop):
     log("revoking database privileges from %s@%s on %s" % ( user, host, db ) )
-    cur = conn.cursor()
-    cur.execute("DELETE FROM mysql.db WHERE User='%s' AND Host='%s' AND Db='%s'" % ( user, host, db ))
-    cur.fetchall()
 
-def check_global_users(conn, permsdir, functions, envtype, envid, app_user):
+    if not noop:
+        cur = conn.cursor()
+        cur.execute("DELETE FROM mysql.db WHERE User='%s' AND Host='%s' AND Db='%s'" % ( user, host, db ))
+        cur.fetchall()
+
+def check_global_users(conn, permsdir, functions, envtype, envid, app_user, noop):
     cur = conn.cursor()
 
     if len(app_user) > 0:
@@ -48,11 +52,11 @@ def check_global_users(conn, permsdir, functions, envtype, envid, app_user):
                     break
 
         if foundit == False:
-                drop_user(conn, user, sql_host)
+                drop_user(conn, user, sql_host, noop)
 
         logv("user %s@%s is fine." % ( user, sql_host ) )
 
-def check_db_privs(conn, permsdir, functions, envtype, envid, app_user):
+def check_db_privs(conn, permsdir, functions, envtype, envid, app_user, noop):
 
     cur = conn.cursor()
     if len(app_user) > 0:
@@ -78,16 +82,18 @@ def check_db_privs(conn, permsdir, functions, envtype, envid, app_user):
                 flag = True
 
         if flag == False:
-            revoke_db_privs(conn, user, host, db)
+            revoke_db_privs(conn, user, host, db, noop)
 
-def delete_table_priv(conn, host, db, user, table_name):
+def delete_table_priv(conn, host, db, user, table_name, noop):
     log("revoking tables privileges on %s.%s for %s@%s" % (db, table_name, user, host))
-    cur = conn.cursor()
-    cur.execute("DELETE FROM mysql.tables_priv WHERE User='%s' AND Db='%s' AND Host='%s' AND Table_name='%s'" % ( user, db, host, table_name ))
-    cur.fetchall()
+
+    if not noop:
+        cur = conn.cursor()
+        cur.execute("DELETE FROM mysql.tables_priv WHERE User='%s' AND Db='%s' AND Host='%s' AND Table_name='%s'" % ( user, db, host, table_name ))
+        cur.fetchall()
 
 # iterates over each row of mysql.tables_priv
-def check_tables_privs(conn, permsdir, functions, envtype, envid, app_user):
+def check_tables_privs(conn, permsdir, functions, envtype, envid, app_user, noop):
     cur = conn.cursor()
 
     if len(app_user)>0:
@@ -105,12 +111,12 @@ def check_tables_privs(conn, permsdir, functions, envtype, envid, app_user):
                 found = True
                 break
         if found == False:
-            delete_table_priv(conn, host, db, user, table_name)
+            delete_table_priv(conn, host, db, user, table_name, noop)
 
-def loop_from_db(conn, permsdir, functions, envtype, envid, app_user):
+def loop_from_db(conn, permsdir, functions, envtype, envid, app_user, noop):
     logv('loop_from_db: working on global privs')
-    check_global_users(conn, permsdir, functions, envtype, envid, app_user)
+    check_global_users(conn, permsdir, functions, envtype, envid, app_user, noop)
     logv('loop_from_db: working on db privs')
-    check_db_privs(conn, permsdir, functions, envtype, envid, app_user)
+    check_db_privs(conn, permsdir, functions, envtype, envid, app_user, noop)
     logv('loop_from_db: working on tables privs')
-    check_tables_privs(conn, permsdir, functions, envtype, envid, app_user)
+    check_tables_privs(conn, permsdir, functions, envtype, envid, app_user, noop)

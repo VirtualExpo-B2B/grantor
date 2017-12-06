@@ -49,16 +49,20 @@ def main():
   parser.add_argument('-P', '--permsdir', required=True, default='../perms', help='path to the perms directory', type=str)
   parser.add_argument('-v', '--verbose', default=False, action='store_true', help='tell me whattya doin')
   parser.add_argument('-f', '--function', nargs='*', required=True, help='function to restore [site/dwh/tech/dmt...]', type=str, dest='functions_list', action='store')
-  parser.add_argument('-a', '--appuser', nargs=1, help='If you wanna work with only one user', required=False, type=str)
+  parser.add_argument('-a', '--appuser', default='', nargs=1, help='If you wanna work with only one user', required=False, type=str)
+  parser.add_argument('-n', '--noop', default=False, action='store_true', help='do ya wanna show changes before we go ?')
 
   args = parser.parse_args()
 
   log("MySQL Grantor starting...")
 
   app_user=''
-  if not args.appuser is None:
+  if len(args.appuser)>0:
     app_user=args.appuser[0]
     log("WORKING ONLY WITHE THE USER %s" % (app_user))
+
+  if args.noop:
+    log("NOOP Mode")
 
   logv_set(args.verbose)
 
@@ -93,12 +97,13 @@ def main():
   envid = fmap[envtype_n](hostname) or die("unable to determine envid")
 
   log("* step 1 - applying permissions from the repository")
-  loop_from_git(conn, str(args.permsdir), args.functions_list, envtype, envid, app_user)
+  loop_from_git(conn, str(args.permsdir), args.functions_list, envtype, envid, app_user,args.noop)
   log("* step 2 - removing extra permissions from the server")
-  loop_from_db(conn, args.permsdir, args.functions_list, envtype, envid, app_user)
+  loop_from_db(conn, args.permsdir, args.functions_list, envtype, envid, app_user,args.noop)
 
-  log("flushing privileges...")
-  cur.execute("FLUSH PRIVILEGES")
+  if not args.noop:
+    log("flushing privileges...")
+    cur.execute("FLUSH PRIVILEGES")
 
   conn.close()
 

@@ -30,7 +30,7 @@ def get_local_user_hosts(permsdir, function, user, envtype,envid):
     return result
 
 
-def ensure_global_perms(conn, permsdir, function, user, envtype, envid):
+def ensure_global_perms(conn, permsdir, function, user, envtype, envid, noop):
     global_perms = quick_read(makepath(permsdir, function, user, 'global_perms'))
     global_perms_content = []
     for line in global_perms.strip().split("\n"):
@@ -47,28 +47,28 @@ def ensure_global_perms(conn, permsdir, function, user, envtype, envid):
             logv("in-sql: working on %s@%s" % ( user, host ) )
             if not check_global_perms_ok(conn, user, host, global_perms_content):
                 logv("%s@%s: fixing permissions" % ( user, host ))
-                apply_global_perms(conn, user, host, global_perms_content)
+                apply_global_perms(conn, user, host, global_perms_content, noop)
             else:
                 logv("%s@%s: perms OK, congrats" % ( user, host ) )
 
             password = quick_read(makepath(permsdir, function, user, 'passwords', envtype))
             if not check_user_password(conn, user, host, password):
-                apply_user_password(conn, user, host, password)
+                apply_user_password(conn, user, host, password, noop)
 
-def ensure_db_perms(conn, permsdir, function, user, host, db):
+def ensure_db_perms(conn, permsdir, function, user, host, db, noop):
     logv('checking db %s permissions for user %s@%s' % (db, user, host))
     if not check_user_db_priv(conn, permsdir, function, user, host, db):
         logv('-> updating db privs for %s@%s on %s' % ( user, host, db ))
-        apply_user_db_priv(conn, permsdir, function, user, host, db)
+        apply_user_db_priv(conn, permsdir, function, user, host, db, noop)
 
-def ensure_table_perms(conn, permsdir, function, user, host, db, table):
+def ensure_table_perms(conn, permsdir, function, user, host, db, table, noop):
     logv('checking table %s.%s permissions for user %s@%s' % ( db, table, user, host ))
     if not check_user_table_priv(conn, permsdir, function, user, host, db, table):
         logv('-> updating table %s.%s permissions for user %s@%s' % ( db, table, user, host ))
-        apply_user_table_priv(conn, permsdir, function, user, host, db, table)
+        apply_user_table_priv(conn, permsdir, function, user, host, db, table, noop)
 
 
-def loop_from_git(conn, permsdir, functions, envtype, envid, app_user):
+def loop_from_git(conn, permsdir, functions, envtype, envid, app_user, noop):
     global dry_run # FIXME check scope of the global shit across python modules
 
     for function in functions:
@@ -97,7 +97,7 @@ def loop_from_git(conn, permsdir, functions, envtype, envid, app_user):
 
             # global privs
             if os.path.isfile(makepath(permsdir,function,user,'global_perms')):
-                ensure_global_perms(conn, permsdir, function, user, envtype, envid)
+                ensure_global_perms(conn, permsdir, function, user, envtype, envid, noop)
 
             sql_hostlist = get_local_user_hosts(permsdir, function, user, envtype, envid)
 
@@ -106,13 +106,13 @@ def loop_from_git(conn, permsdir, functions, envtype, envid, app_user):
                 for db in os.listdir(makepath(permsdir, function, user, 'databases')):
                     if os.path.isfile(makepath(permsdir, function, user, 'databases', db, 'perms')):
                         for host in sql_hostlist:
-                            ensure_db_perms(conn, permsdir, function, user, host, db)
+                            ensure_db_perms(conn, permsdir, function, user, host, db, noop)
 
                 # tables privs
                     if os.path.isdir(makepath(permsdir, function, user, 'databases', db, 'tables')):
                         tables = os.listdir(makepath(permsdir, function, user, 'databases', db, 'tables'))
                         for table in tables:
                             for host in sql_hostlist:
-                                ensure_table_perms(conn, permsdir, function, user, host, db, table)
+                                ensure_table_perms(conn, permsdir, function, user, host, db, table, noop)
 
     print('\r', end='')

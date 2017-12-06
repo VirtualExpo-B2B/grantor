@@ -6,7 +6,7 @@ from helpers.common import *
 def create_new_mysql_user():
   True
 
-def apply_global_perms(conn, user, sql_host, global_perms_content):
+def apply_global_perms(conn, user, sql_host, global_perms_content, noop):
     cur = conn.cursor()
     log("UPDATING permissions for %s@%s" % ( user, sql_host ))
 
@@ -23,6 +23,6 @@ def apply_global_perms(conn, user, sql_host, global_perms_content):
             columns.append(dc)
             privs.append("''")
 
-
-    sql = "REPLACE INTO mysql.user ( %s ) VALUES ( '%s', '%s', %s )" %  ( ','.join(columns), user, sql_host, ','.join(privs) )
-    cur.execute( sql )
+    if not noop:
+        sql = "REPLACE INTO mysql.user ( %s ) VALUES ( '%s', '%s', %s )" %  ( ','.join(columns), user, sql_host, ','.join(privs) )
+        cur.execute( sql )
