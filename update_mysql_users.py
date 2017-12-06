@@ -43,13 +43,13 @@ def get_envid_staging(hostname):
 
 def main():
   parser = argparse.ArgumentParser(prog='MySQL Grantor', description='Applies permissions to a MySQL instance')
-  parser.add_argument('-s', '--server', nargs=1, help='address or hostname of the MySQL server', required=True, type=str)
-  parser.add_argument('-u', '--user', nargs=1, default='root', help='username to authenticate with', type=str)
-  parser.add_argument('-p', '--passwd', nargs=1, help='password of the user to authenticate with', required=True, type=str)
+  parser.add_argument('-s', '--server', help='address or hostname of the MySQL server', required=True, type=str, action='store')
+  parser.add_argument('-u', '--user',  default='root', help='username to authenticate with', type=str, action='store')
+  parser.add_argument('-p', '--passwd', help='password of the user to authenticate with', required=True, type=str, action='store')
   parser.add_argument('-P', '--permsdir', required=True, default='../perms', help='path to the perms directory', type=str)
   parser.add_argument('-v', '--verbose', default=False, action='store_true', help='tell me whattya doin')
   parser.add_argument('-f', '--function', nargs='*', required=True, help='function to restore [site/dwh/tech/dmt...]', type=str, dest='functions_list', action='store')
-  parser.add_argument('-U', '--single-user', dest='single_user', nargs=1, help='if you wanna work with only one user', required=False, type=str)
+  parser.add_argument('-U', '--single-user', dest='single_user', help='if you wanna work with only one user', required=False, type=str)
   parser.add_argument('-n', '--noop', default=False, action='store_true', help='do ya wanna show changes before we go ?')
 
   args = parser.parse_args()
@@ -65,8 +65,8 @@ def main():
     if not os.path.isdir(args.permsdir + '/' + f):
       die("function %s doesn't exist in %s" % (args.permsdir, f))
 
-  logv("connecting to %s (user: %s)... " % (args.server[0], args.user[0]))
-  conn = pymysql.connect( host=args.server[0], user=args.user[0], passwd=args.passwd[0] )
+  logv("connecting to %s (user: %s)... " % (args.server, args.user))
+  conn = pymysql.connect( host=args.server, user=args.user, passwd=args.passwd )
   cur = conn.cursor()
   cur.execute("SHOW VARIABLES LIKE 'hostname'")
   res = cur.fetchall()
