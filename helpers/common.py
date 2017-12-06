@@ -7,6 +7,30 @@ import os, sys
 import time
 
 
+def list_mysql_users(conn, with_host):
+
+    users=[]
+
+    try:
+        cur = conn.cursor()
+        if with_host:
+            cur.execute("SELECT user, host from mysql.user where user not in ('', 'root', 'sys')")
+        else:
+            cur.execute("SELECT distinct(user) as user from mysql.user where user not in ('', 'root', 'sys')")
+
+        list=cur.fetchall()
+        print(list)
+        for user in list:
+            if with_host:
+                users.append(( user[0] , user[1]))
+            else:
+                users.append(user[0])
+    except:
+        return []
+
+    for user in users:
+        print(user)
+    return users
 
 def quick_write(path, contents):
     try:
@@ -83,11 +107,8 @@ def read_folder_to_array(envid, path):
 
 
 def drop_all_users(conn):
-    sql="SELECT user,host from mysql.user where user not in ('root', 'mysql.sys','user','sexploit','')"
-
     cur=conn.cursor()
-    cur.execute(sql)
-    users=cur.fetchall()
+    users=list_mysql_users(conn, True)
 
     for user in users:
         sql="drop user 's%'@'%s'" % (user[0], user[1])
