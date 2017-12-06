@@ -79,25 +79,6 @@ def check_user_db_priv(conn, permsdir, function, user, host, db):
 
     return compare_array(local_db_priv, mysql_db_priv)
 
-def apply_user_db_priv(conn, permsdir, function, user, host, db, noop):
-
-    log("updating database %s permissions for %s@%s" % (db, user, host))
-    local_db_priv=quick_read(permsdir + '/' + function + '/' + user + '/databases/' + db + '/perms').split('\n')
-
-    columns = ['User', 'Host', 'Db']
-    privs = []
-    for perm in local_db_priv:
-
-        columns.append(perm.split(': ')[0])
-        privs.append("'" + perm.split(': ')[1] + "'")
-
-    if not noop:
-        sql = "REPLACE INTO mysql.db ( %s ) VALUES ( '%s', '%s', '%s', %s )" % (','.join(columns), user, host, db, ','.join(privs))
-        cur = conn.cursor()
-        cur.execute(sql)
-
-    return True
-
 
 def check_user_table_priv(conn, permsdir, function, user, host, db, table):
     path = makepath(permsdir, function, user, 'databases', db, 'tables', table)
@@ -123,18 +104,3 @@ def check_user_table_priv(conn, permsdir, function, user, host, db, table):
     target_privs.sort()
 
     return target_privs == remote_privs
-
-
-def apply_user_table_priv(conn, permsdir, function, user, host, db, table, noop):
-
-    log("UPDATING Table_priv on %s.%s for user %s@%s" % (db, table, user, host))
-    cur = conn.cursor()
-
-    target_privs = quick_read(makepath(permsdir, function, user, 'databases', db, 'tables', table))
-    columns = [ 'Host', 'Db', 'User', 'Table_name', 'Grantor', 'Table_priv', 'Column_priv' ]
-
-    if not noop:
-        sql = "REPLACE INTO mysql.tables_priv ( %s ) VALUES ( '%s', '%s', '%s', '%s', '%s', '%s', '' )" % ( ','.join(columns), host, db, user, table, 'root@heaven', target_privs)
-        cur.execute(sql)
-
-    return True

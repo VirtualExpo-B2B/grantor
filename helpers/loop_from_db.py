@@ -6,7 +6,9 @@ from helpers.mappings import *
 from helpers.common import *
 
 def drop_user(conn, user, host, noop):
-    log("removing user %s@%s" % (user,host))
+
+    noop_str = '[noop] ' if noop else ''
+    log("%sremoving user %s@%s" % (noop_str, user, host))
 
     if not noop:
         cur = conn.cursor()
@@ -14,7 +16,9 @@ def drop_user(conn, user, host, noop):
         cur.fetchall()
 
 def revoke_db_privs(conn, user, host, db, noop):
-    log("revoking database privileges from %s@%s on %s" % ( user, host, db ) )
+
+    noop_str = '[noop] ' if noop else ''
+    log("%srevoking database privileges from %s@%s on %s" % (noop_str, user, host, db))
 
     if not noop:
         cur = conn.cursor()
@@ -85,7 +89,8 @@ def check_db_privs(conn, args, envtype, envid):
             revoke_db_privs(conn, user, host, db, args.noop)
 
 def delete_table_priv(conn, host, db, user, table_name, noop):
-    log("revoking tables privileges on %s.%s for %s@%s" % (db, table_name, user, host))
+    noop_str = '[noop] ' if noop else ''
+    log("%srevoking tables privileges on %s.%s for %s@%s" % (noop_str, db, table_name, user, host))
 
     if not noop:
         cur = conn.cursor()
