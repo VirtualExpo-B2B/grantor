@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# coding: utf8
+
 import os
 from helpers.mappings import *
 from helpers.common import *
