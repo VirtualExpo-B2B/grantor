@@ -42,7 +42,7 @@ def get_envid_staging(hostname):
     return False
 
 def main():
-  parser = argparse.ArgumentParser(prog='MySQL Grantor', description='Applies permissions to a MySQL instance')
+  parser = argparse.ArgumentParser(description='Applies permissions to a MySQL instance')
   parser.add_argument('-s', '--server', help='address or hostname of the MySQL server', required=True, type=str, action='store')
   parser.add_argument('-u', '--user',  default='root', help='username to authenticate with', type=str, action='store')
   parser.add_argument('-p', '--passwd', help='password of the user to authenticate with', required=True, type=str, action='store')
