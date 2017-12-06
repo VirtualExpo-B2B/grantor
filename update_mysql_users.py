@@ -45,24 +45,19 @@ def main():
   parser = argparse.ArgumentParser(prog='MySQL Grantor', description='Applies permissions to a MySQL instance')
   parser.add_argument('-s', '--server', nargs=1, help='address or hostname of the MySQL server', required=True, type=str)
   parser.add_argument('-u', '--user', nargs=1, default='root', help='username to authenticate with', type=str)
-  parser.add_argument('-p', '--passwd', nargs=1, help='password of the user', required=True, type=str)
+  parser.add_argument('-p', '--passwd', nargs=1, help='password of the user to authenticate with', required=True, type=str)
   parser.add_argument('-P', '--permsdir', required=True, default='../perms', help='path to the perms directory', type=str)
   parser.add_argument('-v', '--verbose', default=False, action='store_true', help='tell me whattya doin')
   parser.add_argument('-f', '--function', nargs='*', required=True, help='function to restore [site/dwh/tech/dmt...]', type=str, dest='functions_list', action='store')
-  parser.add_argument('-a', '--appuser', default='', nargs=1, help='If you wanna work with only one user', required=False, type=str)
+  parser.add_argument('-U', '--single-user', dest='single_user', nargs=1, help='if you wanna work with only one user', required=False, type=str)
   parser.add_argument('-n', '--noop', default=False, action='store_true', help='do ya wanna show changes before we go ?')
 
   args = parser.parse_args()
 
   log("MySQL Grantor starting...")
 
-  app_user=''
-  if len(args.appuser)>0:
-    app_user=args.appuser[0]
-    log("WORKING ONLY WITHE THE USER %s" % (app_user))
-
   if args.noop:
-    log("NOOP Mode")
+    log("> performing a dry-run (--noop)")
 
   logv_set(args.verbose)
 
@@ -80,7 +75,7 @@ def main():
   logv("connected!\n")
 
   envs = { "1": "dev", "2": "preprod", "3": "prod", "6": "dev" }
-  logv("hostname: %s" % hostname)
+  logv("server hostname: %s" % hostname)
 
   #FIXME - this is a shit modification for playing within my local mysql
   hostname='velo1dblx01'
@@ -97,9 +92,11 @@ def main():
   envid = fmap[envtype_n](hostname) or die("unable to determine envid")
 
   log("* step 1 - applying permissions from the repository")
-  loop_from_git(conn, str(args.permsdir), args.functions_list, envtype, envid, app_user,args.noop)
+  #loop_from_git(conn, str(args.permsdir), args.functions_list, envtype, envid, app_user,args.noop)
+  loop_from_git(conn, args, envtype, envid)
   log("* step 2 - removing extra permissions from the server")
-  loop_from_db(conn, args.permsdir, args.functions_list, envtype, envid, app_user,args.noop)
+  #loop_from_db(conn, args.permsdir, args.functions_list, envtype, envid, app_user,args.noop)
+  loop_from_db(conn, args, envtype, envid)
 
   if not args.noop:
     log("flushing privileges...")
