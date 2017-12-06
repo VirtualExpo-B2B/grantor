@@ -47,7 +47,7 @@ def ensure_global_perms(conn, args, function, user, envtype, envid):
             logv("in-sql: working on %s@%s" % ( user, host ) )
             if not check_global_perms_ok(conn, user, host, global_perms_content):
                 logv("%s@%s: fixing permissions" % ( user, host ))
-                apply_global_perms(conn, user, host, global_perms_content, noop)
+                apply_global_perms(conn, user, host, global_perms_content, args.noop)
             else:
                 logv("%s@%s: perms OK, congrats" % ( user, host ) )
 
