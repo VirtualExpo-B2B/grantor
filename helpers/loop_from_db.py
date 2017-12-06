@@ -21,11 +21,11 @@ def revoke_db_privs(conn, user, host, db, noop):
         cur.execute("DELETE FROM mysql.db WHERE User='%s' AND Host='%s' AND Db='%s'" % ( user, host, db ))
         cur.fetchall()
 
-def check_global_users(conn, permsdir, functions, envtype, envid, app_user, noop):
+def check_global_users(conn,args, envtype, envid):
     cur = conn.cursor()
 
-    if len(app_user) > 0:
-        sql = "SELECT User, Host FROM mysql.user where user = '%s'" % (app_user)
+    if args.single_user != None:
+        sql = "SELECT User, Host FROM mysql.user where user = '%s'" % (args.single_user)
     else:
         sql = "SELECT User, Host FROM mysql.user where user not in ('')"
 
@@ -41,26 +41,26 @@ def check_global_users(conn, permsdir, functions, envtype, envid, app_user, noop
         # m = folx
 
         foundit = False
-        for f in functions:
-            if not os.path.isfile(makepath(permsdir, f,  user, 'hosts', envtype)):
+        for f in args.functions_list:
+            if not os.path.isfile(makepath(args.permsdir, f,  user, 'hosts', envtype)):
                 break
             else:
-                r = quick_read(makepath(permsdir, f,  user, 'hosts', envtype))
+                r = quick_read(makepath(args.permsdir, f,  user, 'hosts', envtype))
                 meta = r.split('\n')
                 if meta_host in meta:
                     foundit = True
                     break
 
         if foundit == False:
-                drop_user(conn, user, sql_host, noop)
+                drop_user(conn, user, sql_host, args.noop)
 
         logv("user %s@%s is fine." % ( user, sql_host ) )
 
-def check_db_privs(conn, permsdir, functions, envtype, envid, app_user, noop):
+def check_db_privs(conn, args, envtype, envid):
 
     cur = conn.cursor()
-    if len(app_user) > 0:
-        sql="SELECT * FROM mysql.db WHERE User='%s'" % (app_user)
+    if args.single_user != None:
+        sql="SELECT * FROM mysql.db WHERE User='%s'" % (args.single_user)
     else:
         sql="SELECT * FROM mysql.db"
 
@@ -77,12 +77,12 @@ def check_db_privs(conn, permsdir, functions, envtype, envid, app_user, noop):
         # the previous stage. if the file is absent in permsdir,
         # it means the user no longer has any privs on the db.
         flag = False
-        for f in functions:
-            if os.path.isfile(makepath(permsdir, f, user, 'databases', db, 'perms')):
+        for f in args.functions_list:
+            if os.path.isfile(makepath(args.permsdir, f, user, 'databases', db, 'perms')):
                 flag = True
 
         if flag == False:
-            revoke_db_privs(conn, user, host, db, noop)
+            revoke_db_privs(conn, user, host, db, args.noop)
 
 def delete_table_priv(conn, host, db, user, table_name, noop):
     log("revoking tables privileges on %s.%s for %s@%s" % (db, table_name, user, host))
@@ -93,11 +93,11 @@ def delete_table_priv(conn, host, db, user, table_name, noop):
         cur.fetchall()
 
 # iterates over each row of mysql.tables_priv
-def check_tables_privs(conn, permsdir, functions, envtype, envid, app_user, noop):
+def check_tables_privs(conn, args, envtype, envid):
     cur = conn.cursor()
 
-    if len(app_user)>0:
-        sql = "SELECT Host, Db, User, Table_name FROM mysql.tables_priv WHERE User='%s'" % (app_user)
+    if args.single_user != None:
+        sql = "SELECT Host, Db, User, Table_name FROM mysql.tables_priv WHERE User='%s'" % (args.single_user)
     else:
         sql = "SELECT Host, Db, User, Table_name FROM mysql.tables_priv"
 
@@ -106,17 +106,17 @@ def check_tables_privs(conn, permsdir, functions, envtype, envid, app_user, noop
     for host, db, user, table_name in cur.fetchall():
         logv("checking table permissions for %s@%s on db %s.%s" % ( user, host, db, table_name ) )
         found = False
-        for f in functions:
-            if os.path.isfile(makepath(permsdir, f, user, 'databases', db, 'tables', table_name)):
+        for f in args.functions_list:
+            if os.path.isfile(makepath(args.permsdir, f, user, 'databases', db, 'tables', table_name)):
                 found = True
                 break
         if found == False:
-            delete_table_priv(conn, host, db, user, table_name, noop)
+            delete_table_priv(conn, host, db, user, table_name, args.noop)
 
-def loop_from_db(conn, permsdir, functions, envtype, envid, app_user, noop):
+def loop_from_db(conn, args, envtype, envid):
     logv('loop_from_db: working on global privs')
-    check_global_users(conn, permsdir, functions, envtype, envid, app_user, noop)
+    check_global_users(conn, args, envtype, envid)
     logv('loop_from_db: working on db privs')
-    check_db_privs(conn, permsdir, functions, envtype, envid, app_user, noop)
+    check_db_privs(conn, args, envtype, envid)
     logv('loop_from_db: working on tables privs')
-    check_tables_privs(conn, permsdir, functions, envtype, envid, app_user, noop)
+    check_tables_privs(conn, args, envtype, envid)

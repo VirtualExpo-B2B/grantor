@@ -30,15 +30,15 @@ def get_local_user_hosts(permsdir, function, user, envtype,envid):
     return result
 
 
-def ensure_global_perms(conn, permsdir, function, user, envtype, envid, noop):
-    global_perms = quick_read(makepath(permsdir, function, user, 'global_perms'))
+def ensure_global_perms(conn, args, function, user, envtype, envid):
+    global_perms = quick_read(makepath(args.permsdir, function, user, 'global_perms'))
     global_perms_content = []
     for line in global_perms.strip().split("\n"):
         global_perms_content.append(line.split(': '))
 
     logv("checking perms for %s" % ( user ) )
 
-    sql_hostlist = get_local_user_hosts(permsdir, function, user, envtype, envid)
+    sql_hostlist = get_local_user_hosts(args.permsdir, function, user, envtype, envid)
 
     if len(sql_hostlist) == 0:
         logv("user %s does not exist on env %s" % (user, envtype))
@@ -51,28 +51,32 @@ def ensure_global_perms(conn, permsdir, function, user, envtype, envid, noop):
             else:
                 logv("%s@%s: perms OK, congrats" % ( user, host ) )
 
-            password = quick_read(makepath(permsdir, function, user, 'passwords', envtype))
+            password = quick_read(makepath(args.permsdir, function, user, 'passwords', envtype))
             if not check_user_password(conn, user, host, password):
-                apply_user_password(conn, user, host, password, noop)
+                apply_user_password(conn, user, host, password, args.noop)
 
-def ensure_db_perms(conn, permsdir, function, user, host, db, noop):
+def ensure_db_perms(conn, args, function, user, host, db):
     logv('checking db %s permissions for user %s@%s' % (db, user, host))
-    if not check_user_db_priv(conn, permsdir, function, user, host, db):
+    if not check_user_db_priv(conn, args.permsdir, function, user, host, db):
         logv('-> updating db privs for %s@%s on %s' % ( user, host, db ))
-        apply_user_db_priv(conn, permsdir, function, user, host, db, noop)
+        apply_user_db_priv(conn, args.permsdir, function, user, host, db, args.noop)
 
-def ensure_table_perms(conn, permsdir, function, user, host, db, table, noop):
+def ensure_table_perms(conn, args, function, user, host, db, table):
     logv('checking table %s.%s permissions for user %s@%s' % ( db, table, user, host ))
-    if not check_user_table_priv(conn, permsdir, function, user, host, db, table):
+    if not check_user_table_priv(conn, args.permsdir, function, user, host, db, table):
         logv('-> updating table %s.%s permissions for user %s@%s' % ( db, table, user, host ))
-        apply_user_table_priv(conn, permsdir, function, user, host, db, table, noop)
+        apply_user_table_priv(conn, args.permsdir, function, user, host, db, table, args.noop)
 
 
-def loop_from_git(conn, permsdir, functions, envtype, envid, app_user, noop):
+def loop_from_git(conn, args, envtype, envid):
     global dry_run # FIXME check scope of the global shit across python modules
 
-    for function in functions:
-        logv("entering function %s" % function)
+    permsdir = args.permsdir
+    noop = args.noop
+    single_user = args.single_user
+
+    for function in args.functions_list:
+        logv("applying function [%s]" % function)
         functiondir = makepath(permsdir, function)
         dirs = os.listdir(functiondir)
 
@@ -87,9 +91,8 @@ def loop_from_git(conn, permsdir, functions, envtype, envid, app_user, noop):
             if user == 'mysql_version':
                 continue
 
-            if len(app_user)>0:
-                if not user==app_user:
-                    continue
+            if args.single_user != None and not user == args.single_user:
+                continue
             logv("working on user %s" % ( user ) )
 
             print("  working on: % 17s [%i/%i] [%i%%]\r" % ( user, i, len(dirs), i * 100 / len(dirs) ), end = '')
@@ -97,7 +100,7 @@ def loop_from_git(conn, permsdir, functions, envtype, envid, app_user, noop):
 
             # global privs
             if os.path.isfile(makepath(permsdir,function,user,'global_perms')):
-                ensure_global_perms(conn, permsdir, function, user, envtype, envid, noop)
+                ensure_global_perms(conn, args, function, user, envtype, envid)
 
             sql_hostlist = get_local_user_hosts(permsdir, function, user, envtype, envid)
 
@@ -106,13 +109,13 @@ def loop_from_git(conn, permsdir, functions, envtype, envid, app_user, noop):
                 for db in os.listdir(makepath(permsdir, function, user, 'databases')):
                     if os.path.isfile(makepath(permsdir, function, user, 'databases', db, 'perms')):
                         for host in sql_hostlist:
-                            ensure_db_perms(conn, permsdir, function, user, host, db, noop)
+                            ensure_db_perms(conn, args, function, user, host, db)
 
                 # tables privs
                     if os.path.isdir(makepath(permsdir, function, user, 'databases', db, 'tables')):
                         tables = os.listdir(makepath(permsdir, function, user, 'databases', db, 'tables'))
                         for table in tables:
                             for host in sql_hostlist:
-                                ensure_table_perms(conn, permsdir, function, user, host, db, table, noop)
+                                ensure_table_perms(conn, args, function, user, host, db, table)
 
     print('\r', end='')
