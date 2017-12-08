@@ -1,10 +1,48 @@
 #!/usr/bin/env python3
 #coding: utf8
-#  vim: set sw=4
+# vim: sw=4
+
+from helpers.common import *
+
+def handle_fixed_mappings(meta_host):
+    # those mappings are independant of the environment
+    # on which the permissions are being applied.
+    map = { 
+        "any": [ "%" ],
+        "veso": [ "10.80.%.%" ],
+        "velo30": [ "172.16.30.%" ],
+        "velo40": [ "172.16.40.%" ],
+        "velo50": [ "172.16.50.%" ],
+        "net-vpn": [ "172.16.100.%", "172.16.200.%" ],
+        "net-priv": [ "172.16.10.%" ],
+        "net-adm": [ "172.16.11.%" ], 
+        "admlx": [ "10.80.41.%" ],
+        "applx": [ "10.80.50.%" ], # FIXME?
+        "localhost": [ "127.0.0.1", "localhost", "::1" ],
+    }
+    return map[meta_host] if meta_host in map else False
+
+# convert meta-hosts to an array of MySQL hosts
+# folx on ndev1 -> [172.16.130.%]
+# envid isn't used yet.
+def get_hosts_from_meta(envtype, envid, meta_host):
+
+    f = handle_fixed_mappings(meta_host)
+    if f != False:
+        return f
+
+    f = quick_read(makepath('data', 'metamap', envtype))
+
+    map = dict((k.strip(), v.strip()) for k, v in
+               (line.split(':') for line in f.split('\n')))
+
+    return [ map[meta_host] ] if meta_host in map else None
 
 
+# convert MySQL host to meta
+def get_meta_from_host(host):
 
-map = {
+    map = {
         "%": "any",
         "10.80.30.%": "folx",
         "10.80.31.%": "dblx",
@@ -38,37 +76,6 @@ map = {
         "172.16.143.%": "bolx",
         "172.16.144.%": "ssolx",
         "172.16.145.%": "rplx",
-      }
+    }
 
-
-
-# convert meta-hosts to an array of MySQL hosts
-# folx on ndev1 -> [172.16.130.%]
-def get_hosts_from_meta(envtype, envid, meta_host):
-    foo = { "folx": [ "172.16.130.%" ],
-            "solx": [ "172.16.133.%" ],
-            "dblx": [ "172.16.131.%" ],
-            "bolx": [ "172.16.133.%" ],
-            "wklx": [ "172.16.132.%" ],
-            "ssolx": [ "172.16.134.%" ],
-            "velo30": [ "172.16.30.%" ],
-            "velo40": [ "172.16.40.%" ],
-            "velo50": [ "172.16.50.%" ],
-            "veso": [ "10.80.%.%" ],
-           "any": [ "%" ],
-           "admlx": [ "10.80.41.%" ],
-           "applx": [ "10.80.50.%" ], # FIXME?
-           "localhost": [ "127.0.0.1", "localhost", "::1" ],
-           "net-vpn": [ "172.16.100.%", "172.16.200.%" ],
-           "net-priv": [ "172.16.10.%" ],
-           "net-adm": [ "172.16.11.%" ], }
-    return foo[meta_host]
-
-
-# convert MySQL host to meta
-def get_meta_from_host(host):
-
-  if host in map:
-    return map[host]
-  else:
-    return False
+    return map[host] if host in map else False

@@ -22,7 +22,7 @@ def get_envid_preprod(hostname):
   #           ^^
   s = re.search('veso2dblx01-([0-9])', hostname)
   if s:
-    return "preprod" + s.group(1)
+    return s.group(1)
   else:
     return False
 
@@ -30,14 +30,14 @@ def get_envid_dev(hostname):
   # velo1ssolx01-1
   s = re.search('velo1dblx0([0-9])*', hostname)
   if s:
-    return "ndev" + s.group(1)
+    return s.group(1)
   else:
     return False
 
 def get_envid_staging(hostname):
   s = re.search('velo6dblx0([0-9])-[0-9]', hostname)
   if s:
-    return "stag" + s.group(1)
+    return s.group(1)
   else:
     return False
 
@@ -84,12 +84,13 @@ def main():
   if s:
     envtype_n = s.group(1)
     envtype = envs[envtype_n]
-    logv("envtype: %s" % envtype)
+    logv("-> envtype: %s" % envtype)
   else:
     die("unable to determine envtype from %s\n" % ( hostname ))
 
   fmap = { "1": get_envid_dev, "2": get_envid_preprod, "3": get_envid_prod, "6": get_envid_staging }
   envid = fmap[envtype_n](hostname) or die("unable to determine envid")
+  logv("-> envid: %s" % envid)
 
   log("* step 1 - applying permissions from the repository")
   #loop_from_git(conn, str(args.permsdir), args.functions_list, envtype, envid, app_user,args.noop)

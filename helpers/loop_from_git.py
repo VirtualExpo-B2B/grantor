@@ -17,16 +17,17 @@ def get_local_user_hosts(permsdir, function, user, envtype,envid):
     # FIXME: shit to prevent an error where the host file is not present for the environment
     try:
         meta_hostlist = quick_read(makepath(permsdir, function, user, 'hosts', envtype)).split('\n')
-        for meta_host in meta_hostlist:
-            list = get_hosts_from_meta(envtype, envid, meta_host)
-            if len(list) > 1:
-                for item in list:
-                    result.append(item)
-            else:
-                result.append(list[0])
     except:
         logv("can't find the meta_host file %s" % makepath(permsdir, function, user, 'hosts', envtype))
 
+    for meta_host in meta_hostlist:
+        hostlist = get_hosts_from_meta(envtype, envid, meta_host)
+        if hostlist == None:
+            log("ERROR: %s has no mapping!" % ( meta_host ))
+        for h in hostlist:
+            result.append(h)
+
+    logv("meta_host: %s   sql_host:%s" % ( ','.join(meta_hostlist), ','.join(result)))
     return result
 
 
