@@ -14,11 +14,16 @@ dry_run = False
 def get_local_user_hosts(permsdir, function, user, envtype,envid):
 
     result=[]
+    meta_hostlist = None
     # FIXME: shit to prevent an error where the host file is not present for the environment
     try:
         meta_hostlist = quick_read(makepath(permsdir, function, user, 'hosts', envtype)).split('\n')
     except:
         logv("can't find the meta_host file %s" % makepath(permsdir, function, user, 'hosts', envtype))
+
+    if meta_hostlist == None:
+        log("ERROR: no hostlist for %s for f=%s,envtype=%s" % ( user, function, envtype ) )
+        return None
 
     for meta_host in meta_hostlist:
         hostlist = get_hosts_from_meta(envtype, envid, meta_host)
@@ -41,7 +46,7 @@ def ensure_global_perms(conn, args, function, user, envtype, envid):
 
     sql_hostlist = get_local_user_hosts(args.permsdir, function, user, envtype, envid)
 
-    if len(sql_hostlist) == 0:
+    if sql_hostlist == None:
         logv("user %s does not exist on env %s" % (user, envtype))
     else:
         for host in sql_hostlist:
@@ -104,6 +109,9 @@ def loop_from_git(conn, args, envtype, envid):
                 ensure_global_perms(conn, args, function, user, envtype, envid)
 
             sql_hostlist = get_local_user_hosts(permsdir, function, user, envtype, envid)
+            if sql_hostlist == None:
+                log("WARNING: skipping user %s" % ( user ))
+                continue
 
             # db privs
             if os.path.isdir(makepath(permsdir, function, user, 'databases')):
