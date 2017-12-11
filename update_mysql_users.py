@@ -20,7 +20,7 @@ def get_envid_preprod(hostname):
   #           ^^
   # veso2ssolx01-1
   #           ^^
-  s = re.search('veso2dblx01-([0-9])', hostname)
+  s = re.search('^veso2dblx01-([0-9])$', hostname)
   if s:
     return s.group(1)
   else:
@@ -28,14 +28,17 @@ def get_envid_preprod(hostname):
 
 def get_envid_dev(hostname):
   # velo1ssolx01-1
-  s = re.search('velo1dblx0([0-9])*', hostname)
+  s = re.search('^velo1dblx0([0-9])-[0-9]$', hostname)
   if s:
     return s.group(1)
   else:
-    return False
+    s = re.search('^velo1dblx0([0-9])$', hostname)
+    return s.group(1) if s else False
+
+  return False
 
 def get_envid_staging(hostname):
-  s = re.search('velo6dblx0([0-9])-[0-9]', hostname)
+  s = re.search('^velo6dblx0([0-9])-[0-9]$', hostname)
   if s:
     return s.group(1)
   else:
@@ -48,7 +51,7 @@ def main():
   parser.add_argument('-p', '--passwd', help='password of the user to authenticate with', required=True, type=str, action='store')
   parser.add_argument('-P', '--permsdir', required=True, default='../perms', help='path to the perms directory', type=str)
   parser.add_argument('-v', '--verbose', default=False, action='store_true', help='tell me whattya doin')
-  parser.add_argument('-f', '--function', nargs='*', required=True, help='function to restore [site/dwh/tech/dmt...]', type=str, dest='functions_list', action='store')
+  parser.add_argument('-f', '--function', required=True, help='function to restore [site/dwh/tech/dmt...]', type=str, dest='functions_list', action='store')
   parser.add_argument('-U', '--single-user', dest='single_user', help='if you wanna work with only one user', required=False, type=str)
   parser.add_argument('-n', '--noop', default=False, action='store_true', help='do ya wanna show changes before we go ?')
 
@@ -61,9 +64,11 @@ def main():
 
   logv_set(args.verbose)
 
+  args.functions_list = args.functions_list.split(',')
+
   for f in args.functions_list:
-    if not os.path.isdir(args.permsdir + '/' + f):
-      die("function %s doesn't exist in %s" % (args.permsdir, f))
+    if not os.path.isdir(makepath(args.permsdir, f)):
+      die("function %s doesn't exist in %s" % (f, args.permsdir))
 
   logv("connecting to %s (user: %s)... " % (args.server, args.user))
   conn = pymysql.connect( host=args.server, user=args.user, passwd=args.passwd )
@@ -77,26 +82,21 @@ def main():
   envs = { "1": "dev", "2": "preprod", "3": "prod", "6": "dev" }
   logv("server hostname: %s" % hostname)
 
-  #FIXME - this is a shit modification for playing within my local mysql
-  hostname='velo1dblx01'
-
   s = re.search('ve[sl]o([0-9]).*', hostname)
   if s:
     envtype_n = s.group(1)
     envtype = envs[envtype_n]
-    logv("-> envtype: %s" % envtype)
   else:
-    die("unable to determine envtype from %s\n" % ( hostname ))
+    die("error: unable to determine envtype from %s\n" % ( hostname ))
 
   fmap = { "1": get_envid_dev, "2": get_envid_preprod, "3": get_envid_prod, "6": get_envid_staging }
   envid = fmap[envtype_n](hostname) or die("unable to determine envid")
-  logv("-> envid: %s" % envid)
+
+  logv("-> envtype: %s, envid: %s" % (envtype, envid))
 
   log("* step 1 - applying permissions from the repository")
-  #loop_from_git(conn, str(args.permsdir), args.functions_list, envtype, envid, app_user,args.noop)
   loop_from_git(conn, args, envtype, envid)
   log("* step 2 - removing extra permissions from the server")
-  #loop_from_db(conn, args.permsdir, args.functions_list, envtype, envid, app_user,args.noop)
   loop_from_db(conn, args, envtype, envid)
 
   if not args.noop:

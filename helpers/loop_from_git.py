@@ -82,7 +82,7 @@ def loop_from_git(conn, args, envtype, envid):
     single_user = args.single_user
 
     for function in args.functions_list:
-        logv("applying function [%s]" % function)
+        log("* working on function %s" % function)
         functiondir = makepath(permsdir, function)
         dirs = os.listdir(functiondir)
 

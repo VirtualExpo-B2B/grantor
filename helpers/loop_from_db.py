@@ -42,23 +42,23 @@ def check_global_users(conn,args, envtype, envid):
         # reverse lookup
         meta_host = get_meta_from_host(sql_host)
 
-        # m = folx
-
         foundit = False
         for f in args.functions_list:
             if not os.path.isfile(makepath(args.permsdir, f,  user, 'hosts', envtype)):
-                break
+                logv("user %s@%s[%s] NOT found in function %s (envtype=%s)" % ( user, sql_host, meta_host, f, envtype) )
+                continue 
             else:
                 r = quick_read(makepath(args.permsdir, f,  user, 'hosts', envtype))
                 meta = r.split('\n')
                 if meta_host in meta:
                     foundit = True
+                    logv("user %s@%s[%s] found in function %s (envtype=%s)" % ( user, sql_host, meta_host, f, envtype) )
                     break
 
         if foundit == False:
-                drop_user(conn, user, sql_host, args.noop)
-
-        logv("user %s@%s is fine." % ( user, sql_host ) )
+            drop_user(conn, user, sql_host, args.noop)
+        else:
+            logv("user %s@%s is fine." % ( user, sql_host ) )
 
 def check_db_privs(conn, args, envtype, envid):
 
@@ -119,9 +119,9 @@ def check_tables_privs(conn, args, envtype, envid):
             delete_table_priv(conn, host, db, user, table_name, args.noop)
 
 def loop_from_db(conn, args, envtype, envid):
-    logv('loop_from_db: working on global privs')
-    check_global_users(conn, args, envtype, envid)
-    logv('loop_from_db: working on db privs')
-    check_db_privs(conn, args, envtype, envid)
     logv('loop_from_db: working on tables privs')
     check_tables_privs(conn, args, envtype, envid)
+    logv('loop_from_db: working on db privs')
+    check_db_privs(conn, args, envtype, envid)
+    logv('loop_from_db: working on global privs')
+    check_global_users(conn, args, envtype, envid)
