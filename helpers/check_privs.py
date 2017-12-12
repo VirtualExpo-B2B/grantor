@@ -57,7 +57,9 @@ def check_user_password(conn, user, sql_host, password):
     return r[0][0] == password
 
 def apply_user_password(conn, user, sql_host, password, noop):
-    log("updating password for %s@%s" % ( user, sql_host ) )
+    noop_str = '[noop] ' if noop else ''
+    
+    log("%supdating password for %s@%s" % ( noop_str, user, sql_host ) )
 
     if not noop:
         cur = conn.cursor()

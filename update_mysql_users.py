@@ -68,7 +68,7 @@ def main():
 
   for f in args.functions_list:
     if not os.path.isdir(makepath(args.permsdir, f)):
-      die("function %s doesn't exist in %s" % (f, args.permsdir))
+      die("error: function %s doesn't exist in %s" % (f, args.permsdir))
 
   logv("connecting to %s (user: %s)... " % (args.server, args.user))
   conn = pymysql.connect( host=args.server, user=args.user, passwd=args.passwd )
