@@ -19,10 +19,7 @@ def get_local_user_hosts(permsdir, function, user, envtype,envid):
     try:
         meta_hostlist = quick_read(makepath(permsdir, function, user, 'hosts', envtype)).split('\n')
     except:
-        logv("can't find the meta_host file %s" % makepath(permsdir, function, user, 'hosts', envtype))
-
-    if meta_hostlist == None:
-        log("ERROR: no hostlist for %s for f=%s,envtype=%s" % ( user, function, envtype ) )
+        logv("no hostlist for %s for f=%s,envtype=%s" % ( user, function, envtype ) )
         return None
 
     for meta_host in meta_hostlist:
