@@ -55,7 +55,9 @@ def ensure_global_perms(conn, args, function, user, envtype, envid):
                 logv("%s@%s: perms OK, congrats" % ( user, host ) )
 
             password = quick_read(makepath(args.permsdir, function, user, 'passwords', envtype))
-            if not check_user_password(conn, user, host, password):
+            if password == False:
+              log("ERROR: no password file for user %s@%s [function=%s,envtype=%s]" % ( user, host, function, envtype ) )
+            elif not check_user_password(conn, user, host, password):
                 apply_user_password(conn, user, host, password, args.noop)
 
 def ensure_db_perms(conn, args, function, user, host, db):
