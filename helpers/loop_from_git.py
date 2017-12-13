@@ -72,8 +72,6 @@ def ensure_table_perms(conn, args, function, user, host, db, table):
 
 
 def loop_from_git(conn, args, envtype, envid):
-    global dry_run # FIXME check scope of the global shit across python modules
-
     permsdir = args.permsdir
     noop = args.noop
     single_user = args.single_user
