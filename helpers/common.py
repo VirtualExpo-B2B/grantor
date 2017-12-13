@@ -114,12 +114,3 @@ def drop_all_users(conn):
         sql="drop user 's%'@'%s'" % (user[0], user[1])
         print(sql)
         cur.execute(sql)
-
-
-
-#FIXME
-# TESTS -------------------------------------------------TO REMOVE-AFTER
-if __name__ == '__main__':
-    conn=pymysql.connect(host="localhost", user="sexploit", passwd="183a0826ee028d809244926e2321234b")
-    drop_all_users(conn)
-    conn.close()
