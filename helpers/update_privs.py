@@ -49,7 +49,8 @@ def apply_user_db_priv(conn, permsdir, function, user, host, db, noop):
 
 def apply_user_table_priv(conn, permsdir, function, user, host, db, table, noop):
 
-    log("updating table privileges on %s.%s for %s@%s" % (db, table, user, host))
+    noop_str = '[noop] ' if noop else ''
+    log("%supdating table privileges on %s.%s for %s@%s" % (noop_str, db, table, user, host))
     cur = conn.cursor()
 
     target_privs = quick_read(makepath(permsdir, function, user, 'databases', db, 'tables', table))

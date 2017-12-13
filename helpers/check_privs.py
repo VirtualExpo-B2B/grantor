@@ -39,10 +39,11 @@ def check_global_perms_ok(conn, user, sql_host, global_perms_content):
             val = gperm[1]
             uptodate = (val == db_val)
             if uptodate == False:
-                logv("user %s@%s: global permissions are NOT up-to-date" % (user, sql_host))
-                return uptodate
+                logv("user %s@%s: global permissions are NOT up-to-date [priv %s:%s should be %s" % (user, sql_host, gperm[0], db_val, val))
 
-    logv("user %s@%s: global permissions are up-to-date" % (user, sql_host))
+    if uptodate == True:
+        logv("user %s@%s: global permissions are up-to-date" % (user, sql_host))
+
     return uptodate
 
 
@@ -92,6 +93,7 @@ def check_user_table_priv(conn, permsdir, function, user, host, db, table):
     res = cur.fetchall()
 
     if len(res) == 0:
+        logv("missing table priv for %s@%s on %s.%s [function=%s]" % (  user, host, db, table, function ) )
         return False
 
     # split the SQL set into an array
@@ -100,9 +102,13 @@ def check_user_table_priv(conn, permsdir, function, user, host, db, table):
 
     # no target privs - nothing to update.
     if target_privs == False:
-      return True
+        return True
      
     remote_privs.sort()
     target_privs.sort()
 
-    return target_privs == remote_privs
+    if target_privs == remote_privs:
+        return True
+    else:
+        logv("privilege mismatch [%s, should be %s] for %s@%s on %s.%s [function=%s]" % ( remote_privs, target_privs, user, host, db, table, function ) )
+        return False

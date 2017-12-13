@@ -77,7 +77,7 @@ def main():
   res = cur.fetchall()
   hostname = res[0][1]
 
-  logv("connected!\n")
+  logv("connected!")
 
   envs = { "1": "dev", "2": "preprod", "3": "prod", "6": "dev" }
   logv("server hostname: %s" % hostname)
