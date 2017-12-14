@@ -51,7 +51,7 @@ def main():
   parser.add_argument('-p', '--passwd', help='password of the user to authenticate with', required=True, type=str, action='store')
   parser.add_argument('-P', '--permsdir', required=True, default='../perms', help='path to the perms directory', type=str)
   parser.add_argument('-v', '--verbose', default=False, action='store_true', help='tell me whattya doin')
-  parser.add_argument('-f', '--function', required=True, help='function to restore [site/dwh/tech/dmt...]', type=str, dest='functions_list', action='store')
+  parser.add_argument('-f', '--function', required=True, help='functions to restore, ex: common,site,dwh', type=str, dest='functions_list', action='store')
   parser.add_argument('-U', '--single-user', dest='single_user', help='if you wanna work with only one user', required=False, type=str)
   parser.add_argument('-n', '--noop', default=False, action='store_true', help='do ya wanna show changes before we go ?')
 
@@ -66,9 +66,14 @@ def main():
 
   args.functions_list = args.functions_list.split(',')
 
+  flag_common = False
   for f in args.functions_list:
+    if f == 'common':
+        flag_common = True
     if not os.path.isdir(makepath(args.permsdir, f)):
       die("error: function %s doesn't exist in %s" % (f, args.permsdir))
+  if not flag_common:
+      die("error: you must invoke the 'common' function")
 
   logv("connecting to %s (user: %s)... " % (args.server, args.user))
   conn = pymysql.connect( host=args.server, user=args.user, passwd=args.passwd )
