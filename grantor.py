@@ -21,9 +21,9 @@ def get_envid_preprod(hostname):
     #           ^^
     # veso2ssolx01-1
     #           ^^
-    s = re.search('^veso2dblx01-([0-9])$', hostname)
+    s = re.search('^veso2dblx', hostname)
     if s:
-        return s.group(1)
+        return "1"
     else:
         return False
 
