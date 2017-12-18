@@ -1,21 +1,34 @@
 # Grantor
 
-This is our ShipIt Project.
-
 Make our athletic wrapped SebNin happy-to-work again!
 
+## Description
 
-TODO :
+This project enables one to read mysql permissions from the [perms repo](http://gitlab.virtual-expo.com/sql/perms) and update a chosen mysql instance.
+A single user permissions can be applied, or all users can be updated as well.
 
-* Retrieve all user's mysql grants
-* A function to check if my "prod" is the same as my "repo"
-* Apply all user's mysql grants
-* Apply a single user's mysql grants
-* create a new user (also generate password for all environments)
-* don't forget sso's database
-* send an email to development@virtual-expo.com when applying user's mysql grants
+**Be extremely careful to update the perms repo local copy before applying permissions!**
 
-* when retrieving all user's mysql grants, if there is an error --> SEND an alert to exploit. Cause I don't wanna my repo to be BUGGED (I know git is our friend)
+## Requirements
+* Python 3
+* Pymysql (from the package python3-pymysql or the pymysql pip module)
 
+## Usage
 
-when applying user's mysql grants : don't drop the users, revoke all there privilegies
+```
+grantor.py [-h] -s SERVER [-u USER] -p PASSWD -P PERMSDIR [-v] -f FUNCTIONS_LIST [-U SINGLE_USER] [-n]
+```
+
+## Options
+
+ Name | Example | Description 
+ -- | -- | --
+ -h, --help | | show this help message and exit
+ -s SERVER, --server SERVER | -s velo1dblx01 | address or hostname of the MySQL server
+ -u USER, --user USER | -u grantor | username to authenticate with
+ -p PASSWD, --passwd PASSWD | -p MyPassword | password of the user to authenticate with
+ -P PERMSDIR, --permsdir PERMSDIR | -P ../perms | path to the perms repo copy
+ -v, --verbose | -v | verbose mode
+ -f FUNCTIONS_LIST, --function FUNCTIONS_LIST | -f common,site | list of functions of the mysql instance
+ -U SINGLE_USER, --single-user SINGLE_USER | -U app_dealers_bt | upadte a single user
+ -n, --noop | -n | noop mode: only show changes
