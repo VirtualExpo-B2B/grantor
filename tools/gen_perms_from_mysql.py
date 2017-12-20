@@ -222,7 +222,7 @@ def main():
   parser.add_argument('-t', '--dbtype', nargs=1, required=True, help='type of database node (site/dwh/dmt/tech/...)')
   parser.add_argument('-d', '--destdir', nargs=1, default=['perms'], help='path to the output directory')
   parser.add_argument('-v', '--verbose', default=False, action='store_true', help='tell me whattya doin')
-  parser.add_argument('-P', '--passwords', default=False, action='store_true', help='extract passwords from the remote server, requires --envtype')
+  parser.add_argument('-P', '--passwords', default=False, action='store_true', help='extract only passwords from the remote server, requires --envtype')
   parser.add_argument('-T', '--envtype', nargs=1, required=True, help='specifies the environment type [dev/preprod/prod]')
 
   args = parser.parse_args()
