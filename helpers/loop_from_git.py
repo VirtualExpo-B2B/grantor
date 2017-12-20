@@ -25,9 +25,10 @@ def get_local_user_hosts(permsdir, function, user, envtype,envid):
     for meta_host in meta_hostlist:
         hostlist = get_hosts_from_meta(envtype, envid, meta_host)
         if hostlist == None:
-            log("ERROR: %s has no mapping!" % ( meta_host ))
-        for h in hostlist:
-            result.append(h)
+            log("ERROR: %s has no mapping! (function=%s, user=%s, envtype=%s, envid=%s" % ( meta_host, function, user, envtype, envid ))
+        else:
+            for h in hostlist:
+                result.append(h)
 
     logv("meta_host: %s   sql_host:%s" % ( ','.join(meta_hostlist), ','.join(result)))
     return result

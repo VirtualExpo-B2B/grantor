@@ -98,7 +98,7 @@ def check_user_table_priv(conn, permsdir, function, user, host, db, table):
 
     # split the SQL set into an array
     remote_privs = res[0][0].split(',')
-    target_privs = quick_read(path).split(',')
+    target_privs = quick_read(path).split('\n')
 
     # no target privs - nothing to update.
     if target_privs == False:

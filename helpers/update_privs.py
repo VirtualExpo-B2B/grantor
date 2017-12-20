@@ -53,7 +53,20 @@ def apply_user_table_priv(conn, permsdir, function, user, host, db, table, noop)
     log("%supdating table privileges on %s.%s for %s@%s" % (noop_str, db, table, user, host))
     cur = conn.cursor()
 
-    target_privs = quick_read(makepath(permsdir, function, user, 'databases', db, 'tables', table))
+    legal_privs = [ 'Select','Insert','Update','Delete','Create','Drop','Grant','References','Index','Alter','Create View','Show view','Trigger' ]
+
+    fs_privs = quick_read(makepath(permsdir, function, user, 'databases', db, 'tables', table)).split('\n')
+
+    # ensure requested privileges exist in MySQL
+    target_privs = []
+    for t in fs_privs:
+        if t in legal_privs:
+            target_privs.append(t)
+        else:
+            log("ERROR: illegal table_priv %s for user %s@%s on table %s.%s" % ( t, user, host, db, table ))
+
+    target_privs = ','.join(target_privs)
+
     columns = [ 'Host', 'Db', 'User', 'Table_name', 'Grantor', 'Table_priv', 'Column_priv' ]
 
     if not noop:
