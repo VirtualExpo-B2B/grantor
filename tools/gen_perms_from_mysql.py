@@ -107,7 +107,7 @@ def do_user_password(d, conn, user):
   f = open(d + '/passwords/' + args.envtype[0], 'w')
   cur.execute("SELECT Password FROM mysql.user WHERE User='%s'" % ( user ))
   res = cur.fetchall()
-  f.write(res[0][0].decode('utf-8') + "\n")
+  f.write(res[0][0] + "\n")
   f.close()
    
 def lookup_reverse_map(h):
@@ -164,7 +164,7 @@ def loop_users(d, conn):
   # we assume users from EVERY sources have the same permissions
   cur.execute("SELECT DISTINCT User FROM mysql.user WHERE user not in ('') ORDER BY User")
   for user in cur.fetchall():
-    user=user[0].decode('utf-8')
+    user=user[0]
     logv("working on user %s" % user)
     du = d + '/' + user
     safe_mkdir(du)
