@@ -36,8 +36,8 @@ def check_global_users(conn,args, envtype, envid):
     cur.execute(sql)
 
     for line in cur.fetchall():
-        user = line[0].decode('utf-8')
-        sql_host = line[1].decode('utf-8')
+        user = line[0]
+        sql_host = line[1]
 
         # reverse lookup
         meta_host = get_meta_from_host(sql_host)
@@ -71,9 +71,9 @@ def check_db_privs(conn, args, envtype, envid):
     cur.execute(sql)
 
     for row in cur.fetchall():
-        host = row[0].decode('utf-8')
-        db = row[1].decode('utf-8')
-        user = row[2].decode('utf-8')
+        host = row[0]
+        db = row[1]
+        user = row[2]
 
         logv("checking database privileges %s@%s on %s" % ( user, host, db ) )
         # this is quite easy: if the file exists in permsdir,
