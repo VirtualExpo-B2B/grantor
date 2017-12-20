@@ -63,7 +63,7 @@ def do_user_db_privs(d, conn, user):
   res = cur.execute("SELECT DISTINCT Db FROM mysql.db WHERE User='%s'" % ( user ))
   dbs = cur.fetchall()
   for db in dbs:
-    db = db[0]
+    db = db[0].decode('utf-8')
     safe_mkdir(d + '/' + db)
     f = open(d + '/' + db + '/perms', 'w')
     for priv in user_db_privs:
@@ -177,7 +177,7 @@ def loop_users(d, conn):
       safe_mkdir(du + '/hosts')
       f = open(du + '/hosts/' + args.envtype[0], 'w')
       for host in res:
-        h = host[0]
+        h = host[0].decode('utf-8')
         meta_host = lookup_reverse_map(h)
         if meta_host != False:
           f.write(meta_host + "\n")
