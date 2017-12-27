@@ -67,12 +67,12 @@ def main():
     parser.add_argument('-u', '--user',  default='root', help='username to authenticate with', type=str, action='store')
     parser.add_argument('-p', '--passwd', help='password of the user to authenticate with', required=True, type=str, action='store')
     parser.add_argument('-P', '--permsdir', required=False, help='path to the perms directory', type=str)
-    parser.add_argument('-R', '--repository', required=False, type=str, action='store')
-    parser.add_argument('-b', '--branch', required=False, type=str, action='store')
-    parser.add_argument('-v', '--verbose', default=False, action='store_true', help='tell me whattya doin')
+    parser.add_argument('-R', '--repository', required=False, type=str, action='store', help='URL of the git repository to clone')
+    parser.add_argument('-b', '--branch', required=False, type=str, action='store', help='branch to checkout in the cloned repository')
     parser.add_argument('-f', '--function', required=True, help='functions to restore, ex: common,site,dwh', type=str, dest='functions_list', action='store')
     parser.add_argument('-U', '--single-user', dest='single_user', help='if you wanna work with only one user', required=False, type=str)
-    parser.add_argument('-n', '--noop', default=False, action='store_true', help='do ya wanna show changes before we go ?')
+    parser.add_argument('-n', '--noop', default=False, action='store_true', help='scared, huh?')
+    parser.add_argument('-v', '--verbose', default=False, action='store_true', help='tell me whattya doin\'')
 
     args = parser.parse_args()
     
