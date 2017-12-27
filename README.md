@@ -32,6 +32,6 @@ grantor.py [-h] -s SERVER [-u USER] -p PASSWD [-P PERMSDIR] [-R REPOSITORY] [-b 
  -p PASSWD, --passwd PASSWD | -p MyPassword | password of the user to authenticate with
  -P PERMSDIR, --permsdir PERMSDIR | -P ../perms | path to the perms repo copy, or path to clone the repository to in case -R/-b is given
  -f FUNCTIONS_LIST, --function FUNCTIONS_LIST | -f common,site | list of functions of the mysql instance
- -U SINGLE_USER, --single-user SINGLE_USER | -U app_dealers_bt | upadte a single user
- -n, --noop | -n | noop mode: only show changes
+ -U SINGLE_USER, --single-user SINGLE_USER | -U app_dealers_bt | update (or remove) a specific user
+ -n, --noop | -n | noop mode: perform a dry-run and report non-compliant permissions
  -v, --verbose | -v | verbose mode
