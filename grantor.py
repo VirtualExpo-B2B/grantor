@@ -5,6 +5,8 @@ import argparse
 import socket
 import os, re
 import signal
+import shutil
+import tempfile
 
 from helpers.common import *
 from helpers.loop_from_git import *
@@ -49,12 +51,24 @@ def handler(signum, frame):
     print("Timeout reached")
     die("ABORT: answer me!")
 
+def git_clone_repository(args):
+    log("cloning %s in %s" % (args.repository, args.permsdir))
+    os.system("git clone %s %s" % (args.repository, args.permsdir))
+
+    if args.branch:
+        os.system("cd %s && git checkout -b %s -t origin/%s" % (args.permsdir, args.branch, args.branch))
+
+    return True
+
+
 def main():
     parser = argparse.ArgumentParser(description='Applies permissions to a MySQL instance')
     parser.add_argument('-s', '--server', help='address or hostname of the MySQL server', required=True, type=str, action='store')
     parser.add_argument('-u', '--user',  default='root', help='username to authenticate with', type=str, action='store')
     parser.add_argument('-p', '--passwd', help='password of the user to authenticate with', required=True, type=str, action='store')
-    parser.add_argument('-P', '--permsdir', required=True, default='../perms', help='path to the perms directory', type=str)
+    parser.add_argument('-P', '--permsdir', required=False, help='path to the perms directory', type=str)
+    parser.add_argument('-R', '--repository', required=False, type=str, action='store')
+    parser.add_argument('-b', '--branch', required=False, type=str, action='store')
     parser.add_argument('-v', '--verbose', default=False, action='store_true', help='tell me whattya doin')
     parser.add_argument('-f', '--function', required=True, help='functions to restore, ex: common,site,dwh', type=str, dest='functions_list', action='store')
     parser.add_argument('-U', '--single-user', dest='single_user', help='if you wanna work with only one user', required=False, type=str)
@@ -65,6 +79,26 @@ def main():
     log("MySQL Grantor starting...")
     
     args.functions_list = args.functions_list.split(',')
+
+    if not args.repository and not args.branch and not args.permsdir:
+        args.repository = 'http://gitlab.virtual-expo.com/sql/perms.git'
+        log('WARNING: you didn\'t specify --permsdir, nor --repository, nor --branch.')
+        log("WARNING: assuming %s / master" % args.repository)
+
+    if args.repository or args.branch:
+        if not args.repository and args.branch:
+            args.repository = 'http://gitlab.virtual-expo.com/sql/perms.git'
+
+        # if we got a -P, clone into this directory.
+        if args.permsdir:
+            # git won't clone into an non-empty directory.
+            if len(os.listdir(args.permsdir)) > 0:
+                die('you specified both --repository/--branch and --permsdir, but target directory is not empty.')
+        else: # otherwise, clone into a temporary directory
+            args.tmpdir = tempfile.TemporaryDirectory()
+            args.permsdir = args.tmpdir.name
+
+        git_clone_repository(args) or die('unable to clone the git repository')
     
     flag_common = False
     for f in args.functions_list:
@@ -123,6 +157,9 @@ def main():
         cur.execute("FLUSH PRIVILEGES")
 
     conn.close()
+
+    if args.tmpdir:
+        args.tmpdir.cleanup()
 
     log("Job done.")
 
