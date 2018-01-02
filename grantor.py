@@ -158,9 +158,6 @@ def main():
 
     conn.close()
 
-    if args.tmpdir:
-        args.tmpdir.cleanup()
-
     log("Job done.")
 
 
