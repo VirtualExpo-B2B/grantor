@@ -40,6 +40,7 @@ def check_global_perms_ok(conn, user, sql_host, global_perms_content):
             uptodate = (val == db_val)
             if uptodate == False:
                 logv("user %s@%s: global permissions are NOT up-to-date [priv %s:%s should be %s" % (user, sql_host, gperm[0], db_val, val))
+                return False
 
     if uptodate == True:
         logv("user %s@%s: global permissions are up-to-date" % (user, sql_host))
