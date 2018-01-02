@@ -103,6 +103,9 @@ def check_user_table_priv(conn, permsdir, function, user, host, db, table):
     # no target privs - nothing to update.
     if target_privs == False:
         return True
+
+    if 'Create' not in target_privs:
+        target_privs.append('Create')
      
     remote_privs.sort()
     target_privs.sort()

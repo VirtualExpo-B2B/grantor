@@ -56,6 +56,9 @@ def apply_user_table_priv(conn, permsdir, function, user, host, db, table, noop)
     legal_privs = [ 'Select','Insert','Update','Delete','Create','Drop','Grant','References','Index','Alter','Create View','Show view','Trigger' ]
 
     fs_privs = quick_read(makepath(permsdir, function, user, 'databases', db, 'tables', table)).split('\n')
+    # we always add CREATE to allow granting permissions on a non-created-yet table
+    if 'Create' not in fs_privs:
+        fs_privs.append('Create')
 
     # ensure requested privileges exist in MySQL
     target_privs = []
