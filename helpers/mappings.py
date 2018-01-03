@@ -18,6 +18,7 @@ def handle_fixed_mappings(meta_host):
         "net-adm": [ "172.16.11.%" ], 
         "admlx": [ "10.80.41.%" ],
         "applx": [ "10.80.50.%" ], # FIXME?
+        "net-vpn": [ "172.16.100.%" ],
         "localhost": [ "127.0.0.1", "localhost", "::1" ],
     }
     return map[meta_host] if meta_host in map else False
