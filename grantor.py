@@ -132,7 +132,7 @@ def main():
 
     logv("connected!")
 
-    envs = { "1": "dev", "2": "preprod", "3": "prod", "6": "dev" }
+    envs = { "1": "dev", "2": "preprod", "3": "prod", "6": "staging" }
     logv("server hostname: %s" % hostname)
 
     s = re.search('ve[sl]o([0-9]).*', hostname)
