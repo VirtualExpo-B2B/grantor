@@ -12,6 +12,7 @@ from helpers.common import *
 from helpers.loop_from_git import *
 from helpers.loop_from_db import *
 
+grantor_repo_version = "1.2"
 
 def get_envid_prod(hostname):
     return "prod"
@@ -99,6 +100,16 @@ def main():
             args.permsdir = args.tmpdir.name
 
         git_clone_repository(args) or die('unable to clone the git repository')
+
+    try:
+        repository_version = quick_read(makepath(args.permsdir, '_version'))
+    except:
+        log("ERROR: the repository has no _version file; this version of Grantor requires it.")
+        sys.exit(1)
+
+    if float(repository_version) != float(grantor_repo_version):
+        log("ERROR: permissions repository version is %s, expected %s" % ( repository_version, grantor_repo_version ) )
+        sys.exit(1)
     
     flag_common = False
     for f in args.functions_list:

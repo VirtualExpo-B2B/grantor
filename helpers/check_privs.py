@@ -103,6 +103,7 @@ def check_user_table_priv(conn, permsdir, function, user, host, db, table):
 
     # no target privs - nothing to update.
     if target_privs == False:
+        logv("empty target privileges for %s@%s on %s.%s [function=%s]" % ( user, host, db, table, function ) )
         return True
 
     if 'Create' not in target_privs:
@@ -112,6 +113,7 @@ def check_user_table_priv(conn, permsdir, function, user, host, db, table):
     target_privs.sort()
 
     if target_privs == remote_privs:
+        logv("privileges are OK for %s@%s on %s.%s [function=%s]" % ( user, host, db, table, function ) )
         return True
     else:
         logv("privilege mismatch [%s, should be %s] for %s@%s on %s.%s [function=%s]" % ( remote_privs, target_privs, user, host, db, table, function ) )
