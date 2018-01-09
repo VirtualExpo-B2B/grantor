@@ -1,0 +1,13 @@
+Source: grantor
+Maintainer: Thomas Lecomte <thomas.lecomte@virtual-expo.com
+Section: misc
+Priority: optional
+Standards-Version: 3.9.2
+Build-Depends: debhelper (>= 9)
+
+Package: grantor
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, python3-pymysql
+Description: Configure MySQL permissions on a remote server.
+  Grantor applies MySQL permissions (grants) to a remote MySQL server
+  from a repository of permissions.
