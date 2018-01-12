@@ -16,7 +16,7 @@ def handle_fixed_mappings(meta_host):
         "net-vpn": [ "172.16.100.%", "172.16.200.%" ],
         "net-priv": [ "172.16.10.%" ],
         "net-adm": [ "172.16.11.%" ], 
-        "admlx": [ "10.80.41.%" ],
+        "admlx": [ "10.80.41.%", "172.16.50.%" ],
         "applx": [ "10.80.50.%" ], # FIXME?
         "net-vpn": [ "172.16.100.%" ],
         "localhost": [ "127.0.0.1", "localhost", "::1" ],
