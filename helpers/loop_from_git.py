@@ -11,7 +11,7 @@ from helpers.check_mysql_version import *
 dry_run = False
 
 # returns an array of SQL hosts for a {function,user,envtype,envid} "couple"
-def get_local_user_hosts(permsdir, function, user, envtype,envid):
+def get_local_user_hosts(progdir, permsdir, function, user, envtype,envid):
 
     result=[]
     meta_hostlist = None
@@ -23,7 +23,7 @@ def get_local_user_hosts(permsdir, function, user, envtype,envid):
         return None
 
     for meta_host in meta_hostlist:
-        hostlist = get_hosts_from_meta(envtype, envid, meta_host)
+        hostlist = get_hosts_from_meta(progdir, envtype, envid, meta_host)
         if hostlist == None:
             log("ERROR: %s has no mapping! (function=%s, user=%s, envtype=%s, envid=%s" % ( meta_host, function, user, envtype, envid ))
         else:
@@ -42,7 +42,7 @@ def ensure_global_perms(conn, args, function, user, envtype, envid):
 
     logv("checking perms for %s" % ( user ) )
 
-    sql_hostlist = get_local_user_hosts(args.permsdir, function, user, envtype, envid)
+    sql_hostlist = get_local_user_hosts(args.progdir, args.permsdir, function, user, envtype, envid)
 
     if sql_hostlist == None:
         logv("user %s does not exist on env %s" % (user, envtype))
@@ -104,7 +104,7 @@ def loop_from_git(conn, args, envtype, envid):
             if os.path.isfile(makepath(permsdir,function,user,'global_perms')):
                 ensure_global_perms(conn, args, function, user, envtype, envid)
 
-            sql_hostlist = get_local_user_hosts(permsdir, function, user, envtype, envid)
+            sql_hostlist = get_local_user_hosts(args.progdir, permsdir, function, user, envtype, envid)
             if sql_hostlist == None:
                 log("WARNING: skipping user %s" % ( user ))
                 continue

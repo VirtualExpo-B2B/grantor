@@ -26,13 +26,13 @@ def handle_fixed_mappings(meta_host):
 # convert meta-hosts to an array of MySQL hosts
 # folx on ndev1 -> [172.16.130.%]
 # envid isn't used yet.
-def get_hosts_from_meta(envtype, envid, meta_host):
+def get_hosts_from_meta(progdir, envtype, envid, meta_host):
 
     f = handle_fixed_mappings(meta_host)
     if f != False:
         return f
 
-    f = quick_read(makepath('data', 'metamap', envtype))
+    f = quick_read(makepath(progdir, 'data', 'metamap', envtype))
 
     map = dict((k.strip(), v.strip()) for k, v in
                (line.split(':') for line in f.split('\n')))
