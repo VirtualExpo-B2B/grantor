@@ -80,7 +80,10 @@ def main():
     log("MySQL Grantor starting...")
     
     args.functions_list = args.functions_list.split(',')
-    args.progdir = os.path.dirname(__file__)
+    p = __file__
+    while (os.path.islink(p)):
+        p = os.readlink(p)
+    args.progdir = os.path.dirname(p)
 
     if not args.repository and not args.branch and not args.permsdir:
         args.repository = 'ssh://git@gitlab.virtual-expo.com/sql/perms.git'
