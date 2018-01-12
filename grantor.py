@@ -83,7 +83,7 @@ def main():
     args.progdir = os.path.dirname(__file__)
 
     if not args.repository and not args.branch and not args.permsdir:
-        args.repository = 'http://gitlab.virtual-expo.com/sql/perms.git'
+        args.repository = 'ssh://git@gitlab.virtual-expo.com/sql/perms.git'
         log('WARNING: you didn\'t specify --permsdir, nor --repository, nor --branch.')
         log("WARNING: assuming %s / master" % args.repository)
 
