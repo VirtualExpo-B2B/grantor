@@ -56,7 +56,7 @@ def git_clone_repository(args):
     log("cloning %s in %s" % (args.repository, args.permsdir))
     os.system("git clone %s %s" % (args.repository, args.permsdir))
 
-    if args.branch:
+    if args.branch and args.branch != "master":
         os.system("cd %s && git checkout -b %s -t origin/%s" % (args.permsdir, args.branch, args.branch))
 
     return True
