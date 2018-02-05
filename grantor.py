@@ -12,7 +12,7 @@ from helpers.common import *
 from helpers.loop_from_git import *
 from helpers.loop_from_db import *
 
-grantor_repo_version = "1.2"
+grantor_repo_version = "1.3"
 
 def get_envid_prod(hostname):
     return "prod"
