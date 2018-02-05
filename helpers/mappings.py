@@ -4,40 +4,32 @@
 
 from helpers.common import *
 
-def handle_fixed_mappings(meta_host):
-    # those mappings are independant of the environment
-    # on which the permissions are being applied.
-    map = { 
-        "any": [ "%" ],
-        "veso": [ "10.80.%.%" ],
-        "velo30": [ "172.16.30.%" ],
-        "velo40": [ "172.16.40.%" ],
-        "net-vpn": [ "172.16.100.%", "172.16.200.%" ],
-        "net-priv": [ "172.16.10.%" ],
-        "net-adm": [ "172.16.11.%" ], 
-        "admlx": [ "10.80.41.%", "172.16.50.%" ],
-        "applx": [ "10.80.50.%" ], # FIXME?
-        "net-vpn": [ "172.16.100.%" ],
-        "localhost": [ "127.0.0.1", "localhost", "::1" ],
-    }
-    return map[meta_host] if meta_host in map else False
-
 # convert meta-hosts to an array of MySQL hosts
-# folx on ndev1 -> [172.16.130.%]
-# envid isn't used yet.
-def get_hosts_from_meta(progdir, envtype, envid, meta_host):
+# we first look for the most specific mapping, then we
+# fallback to common
+# note: envid isn't used yet.
+def get_hosts_from_meta(permsdir, envtype, envid, meta_host):
 
-    f = handle_fixed_mappings(meta_host)
-    if f != False:
+    f = parse_meta(makepath(permsdir, '_data', 'metamap', envtype), meta_host)
+    if f != None:
         return f
 
-    f = quick_read(makepath(progdir, 'data', 'metamap', envtype))
+    f = parse_meta(makepath(permsdir, '_data', 'metamap', 'common'), meta_host)
+    return f
 
-    map = dict((k.strip(), v.strip()) for k, v in
-               (line.split(':') for line in f.split('\n')))
+def parse_meta(filepath, meta_host):
+    f = quick_read(filepath)
 
-    return [ map[meta_host] ] if meta_host in map else None
+    m = dict((k.strip(), v)
+            for k, v in ((k2, v2.split(','))
+	        for k2, v2 in (line.split(':', maxsplit=1)
+	            for line in f.split('\n'))))
 
+    if meta_host in m:
+        m[meta_host] = [x.strip() for x in m[meta_host]]
+        return m[meta_host]
+
+    return None
 
 # convert MySQL host to meta
 def get_meta_from_host(host):
