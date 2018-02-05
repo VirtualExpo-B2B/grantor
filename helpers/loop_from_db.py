@@ -40,7 +40,7 @@ def check_global_users(conn,args, envtype, envid):
         sql_host = line[1]
 
         # reverse lookup
-        meta_host = get_meta_from_host(sql_host)
+        meta_host = get_meta_from_host(args.permsdir, envtype, envid, sql_host)
 
         foundit = False
         for f in args.functions_list:

@@ -23,7 +23,7 @@ def get_local_user_hosts(progdir, permsdir, function, user, envtype,envid):
         return None
 
     for meta_host in meta_hostlist:
-        hostlist = get_hosts_from_meta(progdir, envtype, envid, meta_host)
+        hostlist = get_hosts_from_meta(permsdir, envtype, envid, meta_host)
         if hostlist == None:
             log("ERROR: %s has no mapping! (function=%s, user=%s, envtype=%s, envid=%s" % ( meta_host, function, user, envtype, envid ))
         else:
