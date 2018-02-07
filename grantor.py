@@ -138,7 +138,7 @@ def main():
 
     logv_set(args.verbose)
     
-    tty = open("/dev/tty", "r")
+    tty = open("/dev/stdout", "r")
     args.isatty = tty.isatty()
 
     logv("connecting to %s (user: %s)... " % (args.server, args.user))
