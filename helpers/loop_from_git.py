@@ -97,8 +97,9 @@ def loop_from_git(conn, args, envtype, envid):
                 continue
             logv("working on user %s" % ( user ) )
 
-            print("  working on: % 17s [%i/%i] [%i%%]\r" % ( user, i, len(dirs), i * 100 / len(dirs) ), end = '')
-            i = i + 1  # come on, there's no i++ ?
+            if args.isatty == True:
+                print("  working on: % 17s [%i/%i] [%i%%]\r" % ( user, i, len(dirs), i * 100 / len(dirs) ), end = '')
+                i = i + 1  # come on, there's no i++ ?
 
             # global privs
             if os.path.isfile(makepath(permsdir,function,user,'global_perms')):

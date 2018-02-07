@@ -137,6 +137,9 @@ def main():
         log("> performing a dry-run (--noop)")
 
     logv_set(args.verbose)
+    
+    tty = open("/dev/tty", "r")
+    args.isatty = tty.isatty()
 
     logv("connecting to %s (user: %s)... " % (args.server, args.user))
     conn = pymysql.connect( host=args.server, user=args.user, passwd=args.passwd )
