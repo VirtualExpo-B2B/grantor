@@ -18,15 +18,17 @@ def get_envid_prod(hostname):
     return "prod"
 
 def get_envid_preprod(hostname):
-    # veso2dblxN-M
-    #            ^
+    # veso2dblx01-X
+    #           ^
     # veso2dwhlx01
     #           ^^
     # veso2ssolx01-1
     #           ^^
-    s = re.search('^veso2dblx', hostname)
+    # veso2nodblx01-X
+    #             ^
+    s = re.search('^veso2(?:db|nodb|sso|dwh)lx0([0-9])', hostname)
     if s:
-        return "1"
+        return s.group(1)
     else:
         return False
 
