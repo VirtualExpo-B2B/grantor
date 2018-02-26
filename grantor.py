@@ -34,14 +34,11 @@ def get_envid_preprod(hostname):
 
 def get_envid_dev(hostname):
     # velo1ssolx01-1
-    s = re.search('^velo1dblx0([0-9])-[0-9]$', hostname)
+    s = re.search('^velo1(?:db|dwh)lx0([0-9])', hostname)
     if s:
         return s.group(1)
     else:
-        s = re.search('^velo1dblx0([0-9])$', hostname)
-        return s.group(1) if s else False
-
-    return False
+        return False
 
 def get_envid_staging(hostname):
     s = re.search('^velo6dblx0([0-9])-[0-9]$', hostname)
