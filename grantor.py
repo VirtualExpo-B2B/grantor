@@ -120,7 +120,7 @@ def main():
             flag_common = True
         if not os.path.isdir(makepath(args.permsdir, f)):
             die("error: function %s doesn't exist in %s" % (f, args.permsdir))
-    if not flag_common:
+    if not flag_common and not args.single_user:
         timeout = 5 # timeout in seconds for reading the answer
         log("WARNING: You have not called the function 'common'. You are going to drop the root user and others.")
         log("Are you really sure dumb ass ? (y/N)")
