@@ -52,14 +52,12 @@ def check_global_users(conn,args, envtype, envid):
             else:
                 r = quick_read(makepath(args.permsdir, f,  user, 'hosts', envtype))
                 meta = r.split('\n')
-                logv("  metalist: %s maps to %s" % (meta_host))
                 if meta_host in meta:
                     foundit = True
                     logv("user %s@%s[%s] found in function %s (envtype=%s)" % ( user, sql_host, meta_host, f, envtype) )
                     break
                 else:
                     logv("user %s@%s[%s] has no matching meta-host in function %s" % ( user, sql_host, meta_host, f) )
-                    logv("  meta-hosts defined for function %s: %s" % ( f, ','.join(meta)))
 
 
         if foundit == False:
