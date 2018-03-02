@@ -43,7 +43,9 @@ def check_global_users(conn,args, envtype, envid):
         meta_host = get_meta_from_host(args.permsdir, envtype, envid, sql_host)
 
         foundit = False
+        logv("DEBUG: list of functions: %s" % (args.functions_list) )
         for f in args.functions_list:
+            logv("DEBUG: working on function %s" % ( f ))
             if not os.path.isfile(makepath(args.permsdir, f,  user, 'hosts', envtype)):
                 logv("user %s@%s[%s] NOT found in function %s (envtype=%s)" % ( user, sql_host, meta_host, f, envtype) )
                 continue 
