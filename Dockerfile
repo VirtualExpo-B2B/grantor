@@ -1,4 +1,4 @@
-FROM python:3
+FROM python:3-alpine3.7
 
 RUN pip install PyMySQL && mkdir /usr/src/perms
 

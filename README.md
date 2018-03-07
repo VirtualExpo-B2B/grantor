@@ -1,18 +1,31 @@
 # Grantor
 
-The MySQL Grantor is Virtual Expo's tool to apply user permissions to a running MySQL instance.
+## MySQL Grants as Code
 
-## Description
+
+Grantor is a DevOps tool, developped in [VirtualExpo](http://www.virtual-expo.com/), to manage MySQL users. It enables a team to collaborate on MySQL grants: developpers can add users or modify permissions at will, and using a Git workflow, their commits can be brought into the CI and finally up to production, using merge requests and code revues. Because the grants are managed just as code, traceability is not compromised and rollbacks are always permitted.
+
+The principle consists in writing all the grants into an external Git repository, from which Gantor reads. Just like a Puppet code repo, a **runnning** MySQL instance can then be updated to match the permission described in our repo.
+
+Also, in the case of replicated MySQL instances, Grantor only needs to be applied once. 
+
+These permissions are read from a Git repository or on the local filesystem
 
 This program updates permissions on a MySQL instances from a repository listing all users and their grants.
-The Virtual Expo's permission repository lies at http://gitlab.virtual-expo.com/sql/perms
 
-The program can either work on a local copy of the git ```perms``` repository, or work from a freshly
+The program can either work on a local copy of the git `perms` repository, or work from a freshly
 cloned copy.
 
 ## Requirements
 * Python 3
-* PyMySQL (from the package ```python3-pymysql```, or using ```pip install PyMySQL```)
+* PyMySQL (from the package `python3-pymysql`, or using `pip install PyMySQL`)
+* a MySQL user to connect with, which has the [grant option](https://dev.mysql.com/doc/refman/5.5/en/privileges-provided.html#priv_grant-option) and [reload](https://dev.mysql.com/doc/refman/5.5/en/privileges-provided.html#priv_reload) privileges
+
+## Installation
+
+Either clone the repository: `git clone https://github.com/mysql-grantor/grantor.git`
+
+Or use our Docker container
 
 ## Usage
 
