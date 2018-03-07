@@ -3,29 +3,37 @@
 ## MySQL Grants as Code
 
 
-Grantor is a DevOps tool, developped in [VirtualExpo](http://www.virtual-expo.com/), to manage MySQL users. It enables a team to collaborate on MySQL grants: developpers can add users or modify permissions at will, and using a Git workflow, their commits can be brought into the CI and finally up to production, using merge requests and code revues. Because the grants are managed just as code, traceability is not compromised and rollbacks are always permitted.
+Grantor is a DevOps tool, developped in [VirtualExpo](http://www.virtual-expo.com/), to manage MySQL users. It enables a team to collaborate on MySQL grants: developpers can add users or modify permissions at will, and using a [Git workflow](https://www.atlassian.com/git/tutorials/comparing-workflows), their commits can be brought into the CI and finally up to production, using merge requests and code revues. Because the grants are managed just as code, traceability is not compromised and rollbacks are always permitted.
 
 The principle consists in writing all the grants into an external Git repository, from which Gantor reads. Just like a Puppet code repo, a **runnning** MySQL instance can then be updated to match the permission described in our repo.
 
 Also, in the case of replicated MySQL instances, Grantor only needs to be applied once. 
 
-These permissions are read from a Git repository or on the local filesystem
-
-This program updates permissions on a MySQL instances from a repository listing all users and their grants.
-
-The program can either work on a local copy of the git `perms` repository, or work from a freshly
-cloned copy.
-
-## Requirements
-* Python 3
-* PyMySQL (from the package `python3-pymysql`, or using `pip install PyMySQL`)
-* a MySQL user to connect with, which has the [grant option](https://dev.mysql.com/doc/refman/5.5/en/privileges-provided.html#priv_grant-option) and [reload](https://dev.mysql.com/doc/refman/5.5/en/privileges-provided.html#priv_reload) privileges
+## Requirement
+* A MySQL user to connect with, which has the [grant option](https://dev.mysql.com/doc/refman/5.5/en/privileges-provided.html#priv_grant-option) and [reload](https://dev.mysql.com/doc/refman/5.5/en/privileges-provided.html#priv_reload) privileges
 
 ## Installation
 
-Either clone the repository: `git clone https://github.com/mysql-grantor/grantor.git`
+### Bare metal
 
-Or use our Docker container
+What you need:
+* Python 3
+* PyMySQL (from the package `python3-pymysql`, or using `pip install PyMySQL`)
+
+Just clone the repository: `git clone https://github.com/mysql-grantor/grantor.git`
+
+### Docker
+
+A Docker container is available on the Docker Hub:
+```bash
+docker pull virtualexpo/grantor:1.4.4
+```
+
+### Building the container
+You can also build it your self running:
+```bash
+docker build -t grantor .
+```
 
 ## Usage
 
