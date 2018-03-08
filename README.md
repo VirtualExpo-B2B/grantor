@@ -24,7 +24,7 @@ Just clone the repository: `git clone https://github.com/mysql-grantor/grantor.g
 
 ### Docker container
 
-A Docker container is available on the Docker Hub:
+A [Docker container](https://hub.docker.com/r/virtualexpo/grantor/) is available on the Docker Hub:
 ```bash
 docker pull virtualexpo/grantor:1.4.4
 ```
