@@ -107,21 +107,17 @@ This repository describes the MySQL permissions of the database servers you mana
 ```
 
 
-1. At the first level lie what we call "functions": they describe the roles of your instances. Several functions can be applied on the same server. For example, if you define the same subset of users (backup, etc) on all your database servers, they can be described in a 'common' function, applied on each instance.
-
+1. At the first level lie what we call *functions*: they describe the roles of your instances. Several functions can be applied on the same server. For example, if you define the same subset of users (backup, etc) on all your database servers, they can be described in a 'common' function, applied on each instance.
 Functions can also be merged in case you restore several production MySQL instances on a single integration server for example.
 
-2. Each function contains one directory per MySQL user.
+2. Each function contains one directory per *MySQL user*.
 
-3. Permissions are then desctibed on a per-user basis. There are three types of permissions:
-
-  - Global permissions: `GRANT ... ON *.* TO ...`
-    Those are stored in the `global_perms` file.
-  - Per-database permissions: `GRANT ... ON db.* TO ...`
+3. *Permissions* are then described on a per-user basis. There are three types of permissions:
+..- Global permissions: `GRANT ... ON *.* TO ...` Those are stored in the `global_perms` file.
+..- Per-database permissions: `GRANT ... ON db.* TO ...`
     Those are stored in `databases/$db_name/perms`
-  - Per-table permissions: `GRANT ... ON db.table TO ...`
+..- Per-table permissions: `GRANT ... ON db.table TO ...`
     Those are stored in `databases/$db_name/tables/$table_name`
-
 The way permissions should be written is discussed [later](#writing-permissions).
 
 4. Then, the `hosts` directory contains one file per environment type.
