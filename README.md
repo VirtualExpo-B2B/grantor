@@ -10,7 +10,7 @@ The principle consists in writing all the grants into an external Git repository
 Also, in the case of replicated MySQL instances, Grantor only needs to be applied once. 
 
 ## Requirement
-* A MySQL user to connect with, which has the [grant option](https://dev.mysql.com/doc/refman/5.5/en/privileges-provided.html#priv_grant-option) and [reload](https://dev.mysql.com/doc/refman/5.5/en/privileges-provided.html#priv_reload) privileges
+* A MySQL user to connect with, which has the [grant option](https://dev.mysql.com/doc/refman/5.5/en/privileges-provided.html#priv_grant-option) and [reload](https://dev.mysql.com/doc/refman/5.5/en/privileges-provided.html#priv_reload) privileges.
 
 ## Installation
 
@@ -22,24 +22,30 @@ What you need:
 
 Just clone the repository: `git clone https://github.com/mysql-grantor/grantor.git`
 
-### Docker
+### Docker container
 
 A Docker container is available on the Docker Hub:
 ```bash
 docker pull virtualexpo/grantor:1.4.4
 ```
 
-### Building the container
-You can also build it your self running:
+If you wish, you can also build it your self:
 ```bash
 docker build -t grantor .
 ```
 
 ## Usage
+### Bare metal
 
 ```
-grantor.py [-h] -s SERVER [-u USER] -p PASSWD [-P PERMSDIR] [-R REPOSITORY] [-b BRANCH] -f FUNCTIONS_LIST [-U SINGLE_USER] [-n] [-v]
+./grantor.py [OPTIONS]
 ```
+### Docker container
+```bash
+docker run -v <permissions_dir>:/usr/src/perms virtualexpo/grantor:1.4.4 [OPTIONS]
+```
+
+`<permissions_dir>:` the path on your local filesystem where you have described the MySQL grants. This directory is fully described in the [permissions section](#permissions-directory). It is often refered to as a repository, since the major advantage of Grantor is to use a Git workflow to manage MySQL grants.
 
 ## Options
 
@@ -56,3 +62,5 @@ grantor.py [-h] -s SERVER [-u USER] -p PASSWD [-P PERMSDIR] [-R REPOSITORY] [-b 
  -U SINGLE_USER, --single-user SINGLE_USER | -U app_dealers_bt | update (or remove) a specific user
  -n, --noop | -n | noop mode: perform a dry-run and report non-compliant permissions
  -v, --verbose | -v | verbose mode
+
+## Permissions directory
