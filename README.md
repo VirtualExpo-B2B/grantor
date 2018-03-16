@@ -113,11 +113,9 @@ Functions can also be merged in case you restore several production MySQL instan
 2. Each function contains one directory per *MySQL user*.
 
 3. *Permissions* are then described on a per-user basis. There are three types of permissions:
-..- Global permissions: `GRANT ... ON *.* TO ...` Those are stored in the `global_perms` file.
-..- Per-database permissions: `GRANT ... ON db.* TO ...`
-    Those are stored in `databases/$db_name/perms`
-..- Per-table permissions: `GRANT ... ON db.table TO ...`
-    Those are stored in `databases/$db_name/tables/$table_name`
+    * Global permissions: `GRANT ... ON *.* TO ...` Those are stored in the `global_perms` file.
+    * Per-database permissions: `GRANT ... ON db.* TO ...` Those are stored in `databases/$db_name/perms`
+    * Per-table permissions: `GRANT ... ON db.table TO ...` Those are stored in `databases/$db_name/tables/$table_name`
 The way permissions should be written is discussed [later](#writing-permissions).
 
 4. Then, the `hosts` directory contains one file per environment type.
