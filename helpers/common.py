@@ -76,16 +76,10 @@ def makepath(*arg):
           result += ( '/' + str(i) )
   return result
 
-
-
-
-# permet de vérifier si un tableaux est identique à l'autre
 def is_this_array_is_in_the_other(array_one, array_two):
-
     for val in array_one:
         if val not in array_two:
             return False
-
     return True
 
 def compare_array(array_one, array_two):
@@ -96,21 +90,3 @@ def compare_array(array_one, array_two):
         return False
     if not is_this_array_is_in_the_other(array_two,array_one):
         return False
-
-    return True
-
-
-# depuis un chemin, lit les dossiers et fichiers et met tout ça dans un array de la même structure
-def read_folder_to_array(envid, path):
-    return os.walk(path)
-
-
-
-def drop_all_users(conn):
-    cur=conn.cursor()
-    users=list_mysql_users(conn, True)
-
-    for user in users:
-        sql="drop user 's%'@'%s'" % (user[0], user[1])
-        print(sql)
-        cur.execute(sql)

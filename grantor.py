@@ -12,40 +12,21 @@ from helpers.common import *
 from helpers.loop_from_git import *
 from helpers.loop_from_db import *
 
-grantor_repo_version = "1.3"
+grantor_repo_version = "1.4"
 
-def get_envid_prod(hostname):
-    return "prod"
+def get_envtype(args, hostname):
+    envmap_path = makepath(args.permsdir, '_data', 'envmap')
+    if not os.path.isdir(envmap_path):
+        die("ERROR: unable to find envmap in the permissions repository,\n" + \
+            "       and no --envtype given.")
 
-def get_envid_preprod(hostname):
-    # veso2dblx01-X
-    #           ^
-    # veso2dwhlx01
-    #           ^^
-    # veso2ssolx01-1
-    #           ^^
-    # veso2nodblx01-X
-    #             ^
-    s = re.search('^veso2(?:db|nodb|sso|dwh)lx0([0-9])', hostname)
-    if s:
-        return s.group(1)
-    else:
-        return False
+    for filename in os.listdir(envmap_path):
+        pattern = quick_read(makepath(envmap_path, filename))
+        if re.search(pattern, hostname):
+            return filename
 
-def get_envid_dev(hostname):
-    # velo1ssolx01-1
-    s = re.search('^velo1(?:db|dwh)lx0([0-9])', hostname)
-    if s:
-        return s.group(1)
-    else:
-        return False
-
-def get_envid_staging(hostname):
-    s = re.search('^velo6dblx0([0-9])-[0-9]$', hostname)
-    if s:
-        return s.group(1)
-    else:
-        return False
+    die("ERROR: unable to determine envtype, nothing matched. Check your\n" + \
+        "envmap or use --envtype.")
 
 def handler(signum, frame):
     print("Timeout reached")
@@ -71,6 +52,7 @@ def main():
     parser.add_argument('-b', '--branch', required=False, type=str, action='store', help='branch to checkout in the cloned repository')
     parser.add_argument('-f', '--function', required=True, help='functions to restore, ex: common,site,dwh', type=str, dest='functions_list', action='store')
     parser.add_argument('-U', '--single-user', dest='single_user', help='if you wanna work with only one user', required=False, type=str)
+    parser.add_argument('-e', '--envtype', dest='envtype', help='envtype override', required=False, type=str)
     parser.add_argument('-n', '--noop', default=False, action='store_true', help='scared, huh?')
     parser.add_argument('-v', '--verbose', default=False, action='store_true', help='tell me whattya doin\'')
 
@@ -148,26 +130,17 @@ def main():
     hostname = res[0][1]
 
     logv("connected!")
-
-    envs = { "1": "dev", "2": "preprod", "3": "prod", "6": "staging" }
     logv("server hostname: %s" % hostname)
 
-    s = re.search('ve[sl]o([0-9]).*', hostname)
-    if s:
-        envtype_n = s.group(1)
-        envtype = envs[envtype_n]
-    else:
-        die("error: unable to determine envtype from %s\n" % ( hostname ))
+    if not args.envtype:
+        args.envtype = get_envtype(args, hostname)
 
-    fmap = { "1": get_envid_dev, "2": get_envid_preprod, "3": get_envid_prod, "6": get_envid_staging }
-    envid = fmap[envtype_n](hostname) or die("unable to determine envid")
-
-    logv("-> envtype: %s, envid: %s" % (envtype, envid))
+    logv("-> using envtype: %s" % args.envtype)
 
     log("* step 1 - applying permissions from the repository")
-    loop_from_git(conn, args, envtype, envid)
+    loop_from_git(conn, args)
     log("* step 2 - removing extra permissions from the server")
-    loop_from_db(conn, args, envtype, envid)
+    loop_from_db(conn, args)
 
     if not args.noop:
         log("flushing privileges...")
