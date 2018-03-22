@@ -117,7 +117,7 @@ def main():
     if args.noop:
         log("> performing a dry-run (--noop)")
 
-    logv_set(args.verbose)
+    global_set(g_verbose, args.verbose)
     
     tty = open("/dev/stdout", "r")
     args.isatty = tty.isatty()

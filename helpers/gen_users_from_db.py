@@ -7,12 +7,15 @@ import time
 import os, sys
 import pymysql
 
-from helpers.do_user_password import *
+from helpers.gen_user import *
 from helpers.mappings import *
+from helpers.common import *
 
 def gen_users_from_db(d, conn):
     '''iterates over all users found in the mysql.user table'''
     global args
+    global g_net_count
+    g_net_count = 1
 
     logv("listing users...")
   
@@ -28,7 +31,7 @@ def gen_users_from_db(d, conn):
         safe_mkdir(du)
   
         if args.passwords:
-            do_user_password(du, conn, user)
+            gen_user_password(du, conn, user)
         else:
             cur.execute('SELECT Host FROM mysql.user WHERE User="%s"' % ( user ) )
             res = cur.fetchall()
@@ -38,17 +41,15 @@ def gen_users_from_db(d, conn):
                 h = host[0]
                 safe_mkdir(makepath(args.permsdir, '_data', 'metamap'))
                 if not os.path.isfile(makepath(args.permsdir, '_data', 'metamap', 'common')):
-                    f_meta_common = open(makepath(args.permsdir, '_data', 'metamap', 'common'), 'w')
-                    f_meta_common.write('any: %' + "\n")
-                    f_meta_common.close
+                    quick_write(makepath(args.permsdir, '_data', 'metamap', 'common'), 'any: %' + "\n")
                 if os.path.isfile(makepath(args.permsdir, '_data', 'metamap', args.envtype)):
                     meta_host = get_meta_from_host(args.permsdir, envtype, h)
                 if meta_host == False:
-                    log("WARNING: creating mapping network_%s: %s" % (user, h))
-                    f_meta_envtype = open(makepath(args.permsdir, '_data', 'metamap', args.envtype), 'w')
-                    f_meta_envtype.write('network_' + user + ': ' + h)
-                    f_meta_envtype.close
-                    meta_host = get_meta_from_host(args.permsdir, envtype, h)
+                    log("WARNING: creating mapping network_%s: %s" % (str(g_net_count), h))
+                    quick_write(makepath(args.permsdir, '_data', 'metamap', args.envtype), 'network' + str(g_net_count) + ': ' + h)
+                    g_net_count = g_net_count + 1
+                    meta_host = 'network' + str(g_net_count)
+
                 f.write(meta_host + "\n")
             f.close()
             do_user(du, conn, user)

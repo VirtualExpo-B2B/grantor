@@ -54,7 +54,7 @@ def die(str):
     print(str)
     sys.exit(0)
 
-def logv_set(flag):
+def logv_set(g_verbose, flag):
     global g_verbose
     g_verbose = flag
 
@@ -82,3 +82,11 @@ def compare_array(array_one, array_two):
     if len(intersect) == max(len(array_one), len(array_two)):
         return True
     return False
+
+def safe_mkdir(d):
+  if not os.path.isdir(d):
+    try: os.mkdir(d)
+    except OSError as e:
+      print ( "unable to create destdir %s: %s" % ( e.filename, e.strerror ) )
+      sys.exit(1)
+
