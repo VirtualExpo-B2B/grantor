@@ -7,7 +7,7 @@ import time
 import os, sys
 import pymysql
 
-def do_user_password(d, conn, user):
+def gen_user_password(d, conn, user):
   '''stores the password of $user'''
 
   cur = conn.cursor()
