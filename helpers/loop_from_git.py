@@ -10,8 +10,8 @@ from helpers.check_mysql_version import *
 
 dry_run = False
 
-# returns an array of SQL hosts for a {function,user,envtype,envid} "couple"
-def get_local_user_hosts(progdir, permsdir, function, user, envtype,envid):
+# returns an array of SQL hosts for a {function,user,envtype} tuple
+def get_local_user_hosts(progdir, permsdir, function, user, envtype):
 
     result=[]
     meta_hostlist = None
@@ -23,9 +23,9 @@ def get_local_user_hosts(progdir, permsdir, function, user, envtype,envid):
         return None
 
     for meta_host in meta_hostlist:
-        hostlist = get_hosts_from_meta(permsdir, envtype, envid, meta_host)
+        hostlist = get_hosts_from_meta(permsdir, envtype, meta_host)
         if hostlist == None:
-            log("ERROR: %s has no mapping! (function=%s, user=%s, envtype=%s, envid=%s" % ( meta_host, function, user, envtype, envid ))
+            log("ERROR: %s has no mapping! (function=%s, user=%s, envtype=%s" % ( meta_host, function, user, envtype ))
         else:
             for h in hostlist:
                 result.append(h)
@@ -34,7 +34,7 @@ def get_local_user_hosts(progdir, permsdir, function, user, envtype,envid):
     return result
 
 
-def ensure_global_perms(conn, args, function, user, envtype, envid):
+def ensure_global_perms(conn, args, function, user, envtype):
     global_perms = quick_read(makepath(args.permsdir, function, user, 'global_perms'))
     global_perms_content = []
     for line in global_perms.strip().split("\n"):
@@ -42,7 +42,7 @@ def ensure_global_perms(conn, args, function, user, envtype, envid):
 
     logv("checking perms for %s" % ( user ) )
 
-    sql_hostlist = get_local_user_hosts(args.progdir, args.permsdir, function, user, envtype, envid)
+    sql_hostlist = get_local_user_hosts(args.progdir, args.permsdir, function, user, envtype)
 
     if sql_hostlist == None:
         logv("user %s does not exist on env %s" % (user, envtype))
@@ -72,7 +72,7 @@ def ensure_table_perms(conn, args, function, user, host, db, table):
         apply_user_table_priv(conn, args.permsdir, function, user, host, db, table, args.noop)
 
 
-def loop_from_git(conn, args, envtype, envid):
+def loop_from_git(conn, args):
     permsdir = args.permsdir
     noop = args.noop
     single_user = args.single_user
@@ -103,9 +103,9 @@ def loop_from_git(conn, args, envtype, envid):
 
             # global privs
             if os.path.isfile(makepath(permsdir,function,user,'global_perms')):
-                ensure_global_perms(conn, args, function, user, envtype, envid)
+                ensure_global_perms(conn, args, function, user, args.envtype)
 
-            sql_hostlist = get_local_user_hosts(args.progdir, permsdir, function, user, envtype, envid)
+            sql_hostlist = get_local_user_hosts(args.progdir, permsdir, function, user, args.envtype)
             if sql_hostlist == None:
                 log("WARNING: skipping user %s" % ( user ))
                 continue

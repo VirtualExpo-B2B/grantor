@@ -7,8 +7,7 @@ from helpers.common import *
 # convert meta-hosts to an array of MySQL hosts
 # we first look for the most specific mapping, then we
 # fallback to common
-# note: envid isn't used yet.
-def get_hosts_from_meta(permsdir, envtype, envid, meta_host):
+def get_hosts_from_meta(permsdir, envtype, meta_host):
 
     for source in envtype, 'common':
         m = parse_map(makepath(permsdir, '_data', 'metamap', source))
@@ -19,7 +18,7 @@ def get_hosts_from_meta(permsdir, envtype, envid, meta_host):
     return None
 
 # convert MySQL host to meta
-def get_meta_from_host(permsdir, envtype, envid, host):
+def get_meta_from_host(permsdir, envtype, host):
     for source in envtype, 'common':
         m = parse_map(makepath(permsdir, '_data', 'metamap', source))
         f = search_host(m, host)
