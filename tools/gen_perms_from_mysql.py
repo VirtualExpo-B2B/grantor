@@ -7,6 +7,8 @@ import time
 import os, sys
 import pymysql
 
+from helper. import *
+
 # mysql -uroot -p$(cat /root/.mpwd) -B -N -e 'describe mysql.user' | grep _priv | awk '{ print $1 }'  | sed -e 's/^/"/' -e 's/$/", /' | tr -d '\n'
 user_global_privs = [ "Select_priv", "Insert_priv", "Update_priv", "Delete_priv", "Create_priv", "Drop_priv", "Reload_priv", "Shutdown_priv", "Process_priv", "File_priv", "Grant_priv", "References_priv", "Index_priv", "Alter_priv", "Show_db_priv", "Super_priv", "Create_tmp_table_priv", "Lock_tables_priv", "Execute_priv", "Repl_slave_priv", "Repl_client_priv", "Create_view_priv", "Show_view_priv", "Create_routine_priv", "Alter_routine_priv", "Create_user_priv", "Event_priv", "Trigger_priv", "Create_tablespace_priv" ]
 
@@ -16,15 +18,23 @@ user_db_privs = [ "Select_priv", "Insert_priv", "Update_priv", "Delete_priv", "C
 #
 # filesystem layout:
 #
-# - $dbtype
-#   `- mysql_version
-#   `- $user
-#     `- global_perms
-#     `- sources [select]
-#     `- passwords -> $envtype
-#     `- databases
-#       `- perms
-#       `- tables -> $table -> perms [select]
+# +-- $function
+#     +-- mysql_version
+#     +-- $user
+#         +-- global_perms
+#         +-- databases
+#         |   +-- database1
+#         |       +-- perms
+#         |       +-- tables
+#         |           +-- table1
+#         +-- hosts
+#         |   +-- dev
+#         |   +-- staging
+#         |   +-- prod
+#         +-- passwords
+#         |   +-- dev
+#         |   +-- staging
+#         |   +-- prod
 
 def quick_write(path, contents):
   of = open(path, 'w')
@@ -98,18 +108,7 @@ def do_user(d, conn, user):
   # then do per-table privileges
   do_user_table_privs(d + '/databases', conn, user)
 
-def do_user_password(d, conn, user):
-  '''stores the password of $user'''
-
-  cur = conn.cursor()
-
-  safe_mkdir(d + '/passwords')
-  f = open(d + '/passwords/' + args.envtype[0], 'w')
-  cur.execute("SELECT Password FROM mysql.user WHERE User='%s'" % ( user ))
-  res = cur.fetchall()
-  f.write(res[0][0] + "\n")
-  f.close()
-   
+  
 def lookup_reverse_map(h):
   l = {
         "%": "any",
@@ -153,7 +152,7 @@ def lookup_reverse_map(h):
   return False
 
 def loop_users(d, conn):
-  '''iterates over all users found in the mysql.tables_priv table'''
+  '''iterates over all users found in the mysql.user table'''
   global args
 
   logv("listing users...")
@@ -212,18 +211,17 @@ def store_mysql_version(d, conn):
   f.close()
 
 def main():
-  # tell me it sucks if u got the balls to do so!
   global args
 
   parser = argparse.ArgumentParser(prog='perms-extractor', description='Generates a MySQL grants reference tree')
   parser.add_argument('-s', '--server', nargs=1, help='address of the MySQL server', required=True)
-  parser.add_argument('-u', '--user', nargs=1, default=['root'], help='username to authenticate')
-  parser.add_argument('-p', '--passwd', nargs=1, help='password of the user', required=True)
-  parser.add_argument('-t', '--dbtype', nargs=1, required=True, help='type of database node (site/dwh/dmt/tech/...)')
+  parser.add_argument('-u', '--user', nargs=1, default=['root'], help='authentication user')
+  parser.add_argument('-p', '--passwd', nargs=1, help='password of the authentication user', required=True)
+  parser.add_argument('-f', '--function', nargs=1, required=True, help='database function')
   parser.add_argument('-d', '--destdir', nargs=1, default=['perms'], help='path to the output directory')
   parser.add_argument('-v', '--verbose', default=False, action='store_true', help='tell me whattya doin')
   parser.add_argument('-P', '--passwords', default=False, action='store_true', help='extract only passwords from the remote server, requires --envtype')
-  parser.add_argument('-T', '--envtype', nargs=1, required=True, help='specifies the environment type [dev/preprod/prod]')
+  parser.add_argument('-T', '--envtype', nargs=1, required=True, help='environment type, ex: dev, prod, etc...')
 
   args = parser.parse_args()
 
@@ -231,15 +229,15 @@ def main():
   conn = pymysql.connect( host=args.server[0], user=args.user[0], passwd=args.passwd[0] )
   logv("connected to %s" % args.server[0])
 
-  for d in args.destdir[0], args.destdir[0] + '/' + args.dbtype[0]:
+  for d in args.destdir[0], args.destdir[0] + '/' + args.function[0]:
     safe_mkdir(d)
 
   if args.passwords and not args.envtype:
     die("-P requires -T")
 
-  store_mysql_version(args.destdir[0] + '/' + args.dbtype[0], conn)
+  store_mysql_version(args.destdir[0] + '/' + args.function[0], conn)
 
-  loop_users(args.destdir[0] + '/' + args.dbtype[0], conn)
+  loop_users(args.destdir[0] + '/' + args.function[0], conn)
 
   conn.close()
 
