@@ -76,17 +76,9 @@ def makepath(*arg):
           result += ( '/' + str(i) )
   return result
 
-def is_this_array_is_in_the_other(array_one, array_two):
-    for val in array_one:
-        if val not in array_two:
-            return False
-    return True
-
 def compare_array(array_one, array_two):
-    if not len(array_one) == len(array_two):
-        return False
+    intersect = set(array_one) & set(array_two)
 
-    if not is_this_array_is_in_the_other(array_one, array_two):
-        return False
-    if not is_this_array_is_in_the_other(array_two,array_one):
-        return False
+    if len(intersect) == max(len(array_one), len(array_two)):
+        return True
+    return False

@@ -10,7 +10,7 @@ from helpers.check_mysql_version import *
 
 dry_run = False
 
-# returns an array of SQL hosts for a {function,user,envtype} "couple"
+# returns an array of SQL hosts for a {function,user,envtype} tuple
 def get_local_user_hosts(progdir, permsdir, function, user, envtype):
 
     result=[]
