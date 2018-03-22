@@ -54,7 +54,7 @@ def die(str):
     print(str)
     sys.exit(0)
 
-def logv_set(g_verbose, flag):
+def logv_set(flag):
     global g_verbose
     g_verbose = flag
 

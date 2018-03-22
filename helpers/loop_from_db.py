@@ -25,7 +25,7 @@ def revoke_db_privs(conn, user, host, db, noop):
         cur.execute("DELETE FROM mysql.db WHERE User='%s' AND Host='%s' AND Db='%s'" % ( user, host, db ))
         cur.fetchall()
 
-def check_global_users(conn,args, envtype):
+def check_global_users(conn, args, envtype):
     cur = conn.cursor()
 
     if args.single_user != None:
