@@ -25,7 +25,7 @@ def revoke_db_privs(conn, user, host, db, noop):
         cur.execute("DELETE FROM mysql.db WHERE User='%s' AND Host='%s' AND Db='%s'" % ( user, host, db ))
         cur.fetchall()
 
-def check_global_users(conn,args, envtype, envid):
+def check_global_users(conn,args, envtype):
     cur = conn.cursor()
 
     if args.single_user != None:
@@ -40,7 +40,7 @@ def check_global_users(conn,args, envtype, envid):
         sql_host = line[1]
 
         # reverse lookup
-        meta_host = get_meta_from_host(args.permsdir, envtype, envid, sql_host)
+        meta_host = get_meta_from_host(args.permsdir, envtype, sql_host)
 
         foundit = False
         logv("DEBUG: list of functions: %s" % (args.functions_list) )
@@ -65,7 +65,7 @@ def check_global_users(conn,args, envtype, envid):
         else:
             logv("user %s@%s is fine." % ( user, sql_host ) )
 
-def check_db_privs(conn, args, envtype, envid):
+def check_db_privs(conn, args, envtype):
 
     cur = conn.cursor()
     if args.single_user != None:
@@ -103,7 +103,7 @@ def delete_table_priv(conn, host, db, user, table_name, noop):
         cur.fetchall()
 
 # iterates over each row of mysql.tables_priv
-def check_tables_privs(conn, args, envtype, envid):
+def check_tables_privs(conn, args, envtype):
     cur = conn.cursor()
 
     if args.single_user != None:
@@ -123,10 +123,10 @@ def check_tables_privs(conn, args, envtype, envid):
         if found == False:
             delete_table_priv(conn, host, db, user, table_name, args.noop)
 
-def loop_from_db(conn, args, envtype, envid):
+def loop_from_db(conn, args):
     logv('loop_from_db: working on tables privs')
-    check_tables_privs(conn, args, envtype, envid)
+    check_tables_privs(conn, args, args.envtype)
     logv('loop_from_db: working on db privs')
-    check_db_privs(conn, args, envtype, envid)
+    check_db_privs(conn, args, args.envtype)
     logv('loop_from_db: working on global privs')
-    check_global_users(conn, args, envtype, envid)
+    check_global_users(conn, args, args.envtype)
