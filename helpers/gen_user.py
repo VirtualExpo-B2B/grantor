@@ -16,13 +16,13 @@ user_global_privs = [ "Select_priv", "Insert_priv", "Update_priv", "Delete_priv"
 user_db_privs = [ "Select_priv", "Insert_priv", "Update_priv", "Delete_priv", "Create_priv", "Drop_priv", "Grant_priv", "References_priv", "Index_priv", "Alter_priv", "Create_tmp_table_priv", "Lock_tables_priv", "Create_view_priv", "Show_view_priv", "Create_routine_priv", "Alter_routine_priv", "Execute_priv", "Event_priv", "Trigger_priv" ]
 
 
-def gen_user_password(d, conn, user):
+def gen_user_password(d, conn, user, envtype):
   '''stores the password of $user'''
 
   cur = conn.cursor()
 
   safe_mkdir(d + '/passwords')
-  f = open(d + '/passwords/' + args.envtype[0], 'w')
+  f = open(d + '/passwords/' + envtype, 'w')
   cur.execute("SELECT Password FROM mysql.user WHERE User='%s'" % ( user ))
   res = cur.fetchall()
   f.write(res[0][0] + "\n")

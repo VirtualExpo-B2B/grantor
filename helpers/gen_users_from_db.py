@@ -31,7 +31,7 @@ def gen_users_from_db(d, conn, args):
         safe_mkdir(du)
   
         if args.passwords:
-            gen_user_password(du, conn, user)
+            gen_user_password(du, conn, user, args.envtype[0])
         else:
             g_net_count = gen_hosts(du, cur, user, args, g_net_count)
             do_user(du, conn, user)
