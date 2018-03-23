@@ -65,7 +65,7 @@ def do_user_db_privs(d, conn, user):
       cur.execute("SELECT DISTINCT %s FROM mysql.db WHERE User='%s' AND Db='%s'" % ( priv, user, db ))
       res = cur.fetchall()
       if len(res) != 1:
-        die("fatal: res.len=%i != 1 in do_user_db_privs for %s (priv: %s)" % ( len(res), user, priv ))
+        log("CRIT: res.len=%i != 1 in do_user_db_privs for %s (priv: %s)" % ( len(res), user, priv ))
       f.write("%s: %s\n" % ( priv, res[0][0] ))
     f.close()
 
@@ -79,7 +79,7 @@ def do_user(d, conn, user):
         res = cur.fetchall()
         # FIXME: dirty hack for the specific Super_priv from 10.80.32.% granted to app_batch_solr
         if len(res) != 1:
-            die("fatal: res != 1 in do_user for %s (priv: %s)" % ( user, priv ))
+            log("CRIT: res != 1 in do_user for %s (priv: %s)" % ( user, priv ))
         f.write(priv + ": " + res[0][0] + "\n")
   
     f.close()
