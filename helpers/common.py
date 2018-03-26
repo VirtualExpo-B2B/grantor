@@ -82,3 +82,11 @@ def compare_array(array_one, array_two):
     if len(intersect) == max(len(array_one), len(array_two)):
         return True
     return False
+
+def safe_mkdir(d):
+  if not os.path.isdir(d):
+    try: os.mkdir(d)
+    except OSError as e:
+      print ( "unable to create destdir %s: %s" % ( e.filename, e.strerror ) )
+      sys.exit(1)
+

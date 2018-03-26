@@ -71,6 +71,19 @@ def ensure_table_perms(conn, args, function, user, host, db, table):
     if not check_user_table_priv(conn, args.permsdir, function, user, host, db, table):
         apply_user_table_priv(conn, args.permsdir, function, user, host, db, table, args.noop)
 
+def user_in_sup_functions(user, function, functions_list, permsdir):
+    idx = functions_list.index(function)
+    following_idx = idx + 1
+
+    for other_function in functions_list[following_idx:]:
+        if os.path.isdir(makepath(permsdir,other_function,user)):
+            logv("not describing user %s from function %s" % (user, function))
+            return True
+        else:
+            continue
+    logv("describing user %s from function %s" % (user, function))
+    return False
+
 
 def loop_from_git(conn, args):
     permsdir = args.permsdir
@@ -95,6 +108,10 @@ def loop_from_git(conn, args):
 
             if args.single_user != None and not user == args.single_user:
                 continue
+
+            if user_in_sup_functions(user, function, args.functions_list, permsdir):
+                continue
+            
             logv("working on user %s" % ( user ) )
 
             if args.isatty == True:
